@@ -38,10 +38,23 @@ struct User {
 	double accBalance;
 };
 
+// Funkcija koja stvara pocetne datoteke
+// admin.txt i client.txt za sada
+//
 void createEnvironment();
 
+// Funkcija koja provjerava da li
+// unijeti string (ime naloga) postoji
+// u ostalim nalozima. Sluzi kod stvaranja
+// naloga da se pronadju podudarnosti
 int compareAccountName(char*);
 
+// Naredne tri funkcije sluze za
+// dohvatanje admina, klijenata i
+// korisnika pri cemu im se kao 
+// parametar prosledjuje adresa
+// preko koje se moze dobiti broj tih 
+// naloga
 struct Admin* getAdmins(int*);
 
 struct Client* getClients(int*);
@@ -82,15 +95,23 @@ int checkExitCharacter(char*);
 void modifyCharacter(char*, int, FILE*);
 
 // Funkcija prima string koji se
-// provjerava da li je uneseno
-// ime naloga zadovoljavajuce
-// ono zadovoljava ako se sastoji
+// provjerava da li je unesena
+// akreditacija zadovoljavajuca
+// ona zadovoljava ako se sastoji
 // od karaktera (slova i brojeva)
-// i ima min. 5 karaktera a max 20
-int checkAccountName(char*);		// TODO
+// i ima min. 5 karaktera a max 20.
+// Akreditacija moze biti sifra ili 
+// ime naloga
+int changeAccountCredentials(char*, int, FILE*);
 
-int changeAccountPass(char*, int, FILE*);
-
+// Provjerava akreditaciju, poziva
+// je funkcija changeAccountCrede...
 int checkCredentials(char*);
+
+void printClients();
+
+void printUsers();
+
+void writeUsers(struct User*, int);
 
 #endif

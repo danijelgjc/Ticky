@@ -62,6 +62,9 @@ int compareAccountName(char* string) {
 		if(strcmp(string, admins[i].accountName) == 0) {
 			
 			printf("Ime naloga vec postoji. ");
+			free(admins);
+			free(clients);
+			free(users);
 			return 0;
 		}
 
@@ -69,6 +72,9 @@ int compareAccountName(char* string) {
 		if(strcmp(string, clients[i].accName) == 0) {
 			
 			printf("Ime naloga vec postoji. ");
+			free(admins);
+			free(clients);
+			free(users);
 			return 0;
 		}
 
@@ -76,6 +82,9 @@ int compareAccountName(char* string) {
 		if(strcmp(string, users[i].accName) == 0) { 
 			
 			printf("Ime naloga vec postoji. ");
+			free(admins);
+			free(clients);
+			free(users);
 			return 0;
 		}
 
@@ -202,7 +211,7 @@ void modifyCharacter(char* string, int size, FILE* stream) {
 
 
 
-int changeAccountPass(char* string, int size, FILE* stream) {
+int changeAccountCredentials(char* string, int size, FILE* stream) {
 
 	printf("Potrebna promjena sifre! ");
 	do {
@@ -227,4 +236,40 @@ int checkCredentials(char* string) {
 			return 0;
 		}
 	return 1;
+}
+
+void printClients() {
+
+	int numberOfClients = 0;
+	struct Client* clients = getClients(&numberOfClients);
+
+	for(int i = 0; i < numberOfClients; i++)
+		printf("%s\n", clients[i].accName);
+
+	free(clients);
+}
+
+void printUsers() {
+
+	int numberOfUsers = 0;
+	struct User* users = getUsers(&numberOfUsers);
+
+	for(int i = 0; i < numberOfUsers; i++)
+		printf("%s\n", users[i].accName);
+
+	free(users);
+}
+
+void writeUsers(struct User* users, int numberOfUsers) {
+
+	FILE* stream;
+
+	if((stream = fopen("../Baza_podataka/user.txt", "w")) != NULL) {
+
+		fprintf(stream, "%d\n", numberOfUsers);
+		for(int i = 0; i < numberOfUsers; i++)
+			fprintf(stream, "%s %s %d %s %s %lf\n", users[i].accName, users[i].accPass, users[i].numOfLogIns, users[i].accState, users[i].accCondition);
+
+		fclose(stream);
+	}
 }
