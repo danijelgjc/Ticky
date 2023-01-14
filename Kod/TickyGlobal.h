@@ -58,7 +58,6 @@ int compareAccountName(char*);
 struct Admin* getAdmins(int*);
 
 struct Client* getClients(int*);
-
 struct User* getUsers(int*);
 
 // Funkcija koja preko pokazivaca

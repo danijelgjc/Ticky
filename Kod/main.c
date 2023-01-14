@@ -1,4 +1,4 @@
-#include <stdio.h>
+u#include <stdio.h>
 #include <stdlib.h>
 
 #include "TickyGlobal.h"
@@ -45,6 +45,7 @@ int main() {
 				}
 				else if(checkSecondCharacter(character1)) {
 					// TODO: Prijava na klijent nalog
+
 				}
 				else if(checkThirdCharacter(character1)) {
 					// TODO: Prijava na korisnik nalog
