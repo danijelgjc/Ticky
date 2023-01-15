@@ -37,6 +37,31 @@ struct User {
 	char accCondition[30];
 	double accBalance;
 };
+struct Date
+{
+	int dd;
+	int mm;
+	int yy;
+};
+struct Event
+{
+	char eventCode[7];
+	char eventName[30];
+	char eventPlace[30];
+	struct Date date;
+};
+struct Ticket
+{
+	char eventCode[7];
+	double prise;
+
+};
+struct boughtTickets
+{
+	struct Ticket ticket;
+	int howMany;
+	char accName[30];
+};
 
 // Funkcija koja stvara pocetne datoteke
 // admin.txt i client.txt za sada
@@ -58,9 +83,10 @@ int compareAccountName(char*);
 struct Admin* getAdmins(int*);
 
 struct Client* getClients(int*);
-
 struct User* getUsers(int*);
-
+struct Event* getEvents(int*);//DONE
+struct Ticket getTickets(int*);//TODO
+void printEvents();
 // Funkcija koja preko pokazivaca
 // daje informaciju o broju dozvoljenih
 // prijava a vraca da li je prijava za
@@ -82,6 +108,8 @@ int checkThirdCharacter(char*);
 int checkFourthCharacter(char*);
 
 int checkFifthCharacter(char*);
+
+
 
 // Isto kao i ostali samo provjera
 // za izlazak iz petlje preko '0'

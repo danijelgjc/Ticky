@@ -144,6 +144,32 @@ struct User* getUsers(int* numberOfUsers) {
 	}
 	return users;
 }
+struct Event* getEvents(int* numberOfEvents)
+{
+	struct Event* events = NULL;
+	FILE* stream;
+	if ((stream = fopen("../Baza_podataka/event.txt", "r")) != NULL) {
+		fscanf(stream, "%d\n", numberOfEvents);
+		if (*numberOfEvents == 0) {
+			fclose(stream);
+			return events;
+		};
+		struct Event* eventss = calloc(numberOfEvents, sizeof(struct Event));
+		for (int i = 0; i < *numberOfEvents; i++)
+			fscanf(stream, "%s %s %s %d %d %d\n", events[i].eventCode, events[i].eventName, events[i].eventPlace, events[i].date.dd, events[i].date.mm, events[i].date.yy);
+		fclose(stream);
+	}
+	return events;
+}
+
+void printEvents()
+{
+	int numOfEvents = 0;
+	struct Event* events = getEvents(&numOfEvents);
+	for (int i = 0; i < numOfEvents; i++) {
+		fprint("%s %s %s %d.%d.%d\n", events[i].eventCode, events[i].eventName, events[i].eventPlace, events[i].date.dd, events[i].date.mm, events[i].date.mm, events[i].date.yy);
+	}
+}
 
 struct Info readNumberOfLogIns() {
 
