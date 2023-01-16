@@ -131,8 +131,8 @@ void writeEvent(struct Event* events, int numberOfEvent) {
 
 	if ((stream = fopen("../Baza_podataka/event.txt", "w")) != NULL) {
 		fprintf(stream, "%d\n", numberOfEvent);
-		for(int i=0;i<numberOfEvent;i++);
-		fprintf(stream, "%s %s %s %d %d %d\n",events[i].eventCode, events[i].eventName, events[i].eventPlace, events[i].date.dd,events[i]->Date.dd,event[i].mm,events[i].date.yy);
+		for(int i=0;i<numberOfEvent;i++)
+		fprintf(stream, "%s %s %s %d %d %d\n",events[i].eventCode, events[i].eventName, events[i].eventPlace, events[i].date.dd,events[i].date.dd,events[i].date.mm,events[i].date.yy);
 		fclose(stream);
 	}
 }
@@ -181,7 +181,16 @@ void createEvent(stream)
 	writeEvents(events, ++numberOfEvents);
 	free(events);
 }
-void deleteEvent(char* eventCode)
+void freeEvent(struct Event* event)
+{
+	free(event->eventCode);
+	free(event->eventName);
+	free(event->eventPlace);
+	free(event->date.dd);
+	free(event->date.mm);
+	free(event->date.yy);
+}
+void deleteEvent(char** eventCode)
 {
 	int numberOfEvents = 0;
 	int find = 0;
@@ -195,18 +204,18 @@ void deleteEvent(char* eventCode)
 			events[i] = events[i + 1];
 		}
 		
-		else if(find && (i==(numberOfEvents-1)))
-		//free(events[i]);
+		else if (find && (i == (numberOfEvents - 1))) {
+			
+		}
 		else if (!strcmp(eventCode, events[i].eventCode))
 		{
-			nodeToDelete = events[i];
+			freeEvent(events+i);
 			events[i] = events[i + 1];
 			find=1;
 		}
 	}
 	if (find) {
-		//free(*(events[i]); NOTE: Nece da mi se pravilno dealocira
-		free(nodeToDelete);
+		freeEvent(events + i);
 		printf("Cvor uspjesno obrisan!\n");
 		writeEvents(events, numberOfEvents - 1);
 	}

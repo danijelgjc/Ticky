@@ -3,6 +3,8 @@
 
 #include "TickyGlobal.h"
 #include "TickyAdmin.h"
+#include "TickyClient.h"
+#include "TickyUser.h"
 
 int main() {
 

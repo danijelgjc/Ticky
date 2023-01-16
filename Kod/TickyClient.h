@@ -1,5 +1,5 @@
-#ifndef _TickyKlijent_h_
-#define _TickyKlijent_h_
+//#ifndef _TickyClient_h_
+#define _TickyClient_h_
 
 #include "TickyGlobal.h"
 

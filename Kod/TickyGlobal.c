@@ -161,7 +161,23 @@ struct Event* getEvents(int* numberOfEvents)
 	}
 	return events;
 }
-
+struct Ticket* getTickets(int* numberOfTickets)
+{
+	struct Ticket* tickets = NULL;
+	FILE* stream;
+	if ((stream = fopen("../Baza_podataka/ticket.txt", "r")) != NULL) {
+		fscanf(stream, "%d\n", numberOfTickets);
+		if (*numberOfTickets == 0) {
+			fclose(stream);
+			return tickets;
+		};
+		struct Event* eventss = calloc(numberOfTickets, sizeof(struct Event));
+		for (int i = 0; i < *numberOfTickets; i++)
+			fscanf(stream, "%s %lf\n", tickets[i].eventCode, tickets[i].prise);
+		fclose(stream);
+	}
+	return tickets;
+}
 void printEvents()
 {
 	int numOfEvents = 0;

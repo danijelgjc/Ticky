@@ -1,5 +1,6 @@
 #ifndef _TickyGlobal_h_
 #define _TickyGlobal_h_
+#define _CRT_SECURE_NO_WARNINGS
 
 #include <stdio.h>
 #include <ctype.h>
@@ -56,7 +57,7 @@ struct Ticket
 	double prise;
 
 };
-struct boughtTickets
+struct soldTickets
 {
 	struct Ticket ticket;
 	int howMany;
@@ -85,7 +86,7 @@ struct Admin* getAdmins(int*);
 struct Client* getClients(int*);
 struct User* getUsers(int*);
 struct Event* getEvents(int*);//DONE
-struct Ticket getTickets(int*);//TODO
+struct Ticket* getTickets(int*);//TODO
 void printEvents();
 // Funkcija koja preko pokazivaca
 // daje informaciju o broju dozvoljenih

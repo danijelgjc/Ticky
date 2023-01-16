@@ -1,9 +1,11 @@
 #include "TickyUser.h"
-
+void createUser(FILE* stream);
 void userOption(struct Info info, FILE* stream)
 {
-	if (userLogin(info, stream)) {
+	struct User user;
+	if (userLogin(stream, &user)) {
 		int checkShouldIRun = 1;
+
 		do
 		{
 			printf("Dogadjaji [1], Ulaznice [2], Credit [3], Kraj [0]: ");
@@ -11,39 +13,39 @@ void userOption(struct Info info, FILE* stream)
 			modifyCharacter(character, 15, stream);
 			if (checkFirstCharacter(character))
 				printEvents();
-			
+
 			else if (checkSecondCharacter(character))
 				do
 				{
 					int checkSouldIRun = 1;
-					printf("Kupovina ulaznica [1], Pregled kupljenih ulaznica [2], Ponistavanje kupljene ulaznice[3] Kraj[0]: ");
+					printf("Kupovina ulaznica [1], Pregled kupljenih ulaznica [2], Ponistavanje kupljene ulaznice[3], Kraj[0]: ");
 					char character1[15] = { '\0' };
 					modifyCharacter(character1, 15, stream);
 					if (ckeckFirstCharacter(character1))
 					{
-						buyTicket(user, stream);
+						buyTicket(&user, stream);
 					}
 					else if (checkSecondCharacter(character1))
 					{
-						printTickets(user, stream);
+						printTickets(user.accName,stream);
 					}
 					else if (checkThirdCharacter(character1))
 					{
-						char[7] eventCode = { '\0' };
+						char eventCode[7] = { '\0' };
 						printf("Unesite sifru dogadjaja: ");
 						modifyCharacter(eventCode, 7, stream);
-						returnTicket(user, eventCode);
+						returnTicket(eventCode);
 					}
 					else if (checkExitCharacter(character1)) checkShouldIRun = 0;
 					else printf("Greska. Unesite ponovo!\n");
-				} while (checkShouldIRun)
+				} while (checkShouldIRun);
 			else if (checkThirdCharacter(character))
 			{
-				checkCredit(user);
+				checkCredit(stream);
 			}
-			else if (checkExitcharacter) checkShouldIRun = 1;
+			else if (checkExitcharacter()) checkShouldIRun = 1;
 			else printf("Greska. Unesite ponovo!\n");
-		}while(checkShouldIRun)
+		} while (checkShouldIRun);
 	}
 }
 void createUser(FILE* stream)
@@ -76,34 +78,37 @@ void createUser(FILE* stream)
 		free(users);
 }
 
-void printTickets(struct User user)
+void printTickets(char* accName,FILE* stream)
 {
-	int numOfBoughtTickets = 0;
-	struct boughtTickets* bTickets = getBoughtTickets(user.name,&numOfBoughtTickets);
-	for (int i = 0; i < numOfBoughtTickets; i++)
-		printf("%s	%d  %lf", bTickets[i]->ticket.eventCode, bTickets[i].howMany, bTickets[i]->ticket.prise);
+	int numOfSolfTickets = 0;
+	struct soldTickets* sTickets = getBoughtTickets(accName,&numOfSolfTickets);
+	for (int i = 0; i < numOfSolfTickets; i++)
+		printf("%s	%d  %lf", sTickets[i].ticket.eventCode, sTickets[i].howMany, sTickets[i].ticket.prise);
 }
-double checkCredit(struct User user)
+void checkCredit(struct User* user)
 {
-	return user.accBalance;
+	printf("Iznos na vasem racunu je %lf.\n", user->accBalance);
 }
-void buyTicket(user, stream)
+void buyTicket(struct User* user, FILE* stream)
 {
-	char[7] eventCode = { '\0' };
+	char eventCode[7] = { '\0' };
 	int howMany = 0;
 	int numOfEvents = 0;
 	int find = 0;
+	double prise = 0;
 	printf("Unesite sifru dogadjaja: ");
 	modifyCharacter(eventCode, 7, stream);
-	struct Ticket* ticket = getTickets(&numOfEvents);
+	struct Ticket* tickets = getTickets(&numOfEvents);
 	for (int i = 0; i < numOfEvents; i++) {
-		if (!strcmp(ticket[i]->eventCode, eventCode))
+		if (!strcmp(tickets[i].eventCode, eventCode)) {
 			find = 1;
+			prise = tickets[i].prise;
+		}
 	}
 	if (find) {
 		printf("Unesite kolicinu karata koju kupujete: ");
 		scanf("%d", &howMany);
-		if (checkCredit(user) >= howMany * ticket->eventCode)
+		if (user->accBalance >= howMany * prise)
 		{
 			//DODAJ NOVU INFO O KUPLJENIM KARTAMA U BAZU boughtTickets
 		}
@@ -112,37 +117,5 @@ void buyTicket(user, stream)
 	}
 	else
 		printf("Sifra dogadjaja nije ispravna!");
-}
-int userLogIn(struct Info* info, FILE* stream) {
 
-	struct User user;
-	int shouldIRun = 1;
-
-	do {
-
-		printf("Unesite ime naloga: ");
-		modifyCharacter(user.accName, 30, stream);
-
-		printf("Unesite lozinku naloga: ");
-		modifyCharacter(user.accPass, 30, stream);
-
-		int userNumber = 0;
-		if (checkClientLogInInfo(user, &userNumber)) {
-
-			int numberOfUser = 0;
-			struct Client* user = getUsers(&numberOfUser);
-			if (++info[userNumber].numberOfLogIns == info->allowedNumber) {
-
-				char newUserPass[30] = { '\0' };
-				changeAccountCredentials(newUserPass, 30, stream);
-
-				strcpy(user[userNumber].accountPass, newUserPass);
-				user[userNumber].numberOfLogIns = 0;
-			}
-			writeUsers(users, numberOfusers);
-			shouldIRun = 0;
-			free(user);
-		}
-
-	} while (shouldIRun);
 }
