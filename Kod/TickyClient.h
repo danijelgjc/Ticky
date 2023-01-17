@@ -15,10 +15,10 @@ void checkSoldTickets(FILE*);	// TODO
 
 void checkSales(FILE*);//TODO
 
-void deleteEvent(char* eventCode);//DONE
+void deleteEvent(FILE*, char*);//DONE
 
-char* generateEventCode();
+int generateEventCode();
 
-int clientLogIn(struct Info*, FILE*); 			// DONE
+int clientLogIn(struct Info*, FILE*, char*); 			// DONE
 
 #endif

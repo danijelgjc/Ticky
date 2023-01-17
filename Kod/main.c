@@ -47,7 +47,8 @@ int main() {
 					clientOption(&info, stdin);
 				}
 				else if(checkThirdCharacter(character1)) {
-					// TODO: Prijava na korisnik nalog
+				
+					userOption(info, stdin);
 				}
 				else if(checkExitCharacter(character1)) checkShouldIRun1 = 0;
 				else printf("Greska. Unesite ponovo!\n");

@@ -43,7 +43,7 @@ struct User {
 
 struct Event
 {
-	char eventCode[10];
+	int eventCode;
 	char eventName[30];
 
 	char eventPlace[30];
@@ -53,7 +53,9 @@ struct Event
 	char time[30];
 	double ticketPrice;
 
-	char** soldTickets;
+	int* soldTickets;
+
+	char accName[30];
 };
 
 int validationPass(char*);
@@ -85,7 +87,6 @@ struct Event* getEvents(int*);
 
 struct Ticket* getTickets(int*);//TODO
 
-void printEvents();
 // Funkcija koja preko pokazivaca
 // daje informaciju o broju dozvoljenih
 // prijava a vraca da li je prijava za
