@@ -1,6 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "TickyGlobal.h"
 #include "TickyAdmin.h"
 #include "TickyClient.h"
@@ -57,7 +54,54 @@ int main() {
 			} while(checkShouldIRun1);
 		}
 		else if(checkSecondCharacter(character)) {
-			// TODO: Registracija
+		
+			char realName[30] = { '\0' };
+			do {
+
+				printf("Unesite svoje ime: ");
+				modifyCharacter(realName, 30, stdin);
+			} while(validationPass(realName));
+
+			char realSurName[30] = { '\0' };
+			do {
+
+				printf("Unesite svoje prezime: ");
+				modifyCharacter(realSurName, 30, stdin);
+			} while(validationPass(realSurName));
+
+			char accName[30] = { '\0' };
+			do {
+
+				printf("Unesite ime naloga: ");
+				modifyCharacter(accName, 30, stdin);
+			} while(!checkCredentials(accName) || !compareAccountName(accName));
+
+			char accPass[30] = { '\0' };
+			do {
+
+				printf("Unesite sifru naloga: ");
+				modifyCharacter(accPass, 30, stdin);
+			} while(!checkCredentials(accPass));
+
+			int numberOfUsers = 0;
+			struct User* users = getUsers(&numberOfUsers);
+
+			users = realloc(users, (numberOfUsers + 1) * sizeof(struct User));
+
+			strcpy(users[numberOfUsers].realName, realName);
+			strcpy(users[numberOfUsers].realSurName, realSurName);
+			strcpy(users[numberOfUsers].accName, accName);
+			strcpy(users[numberOfUsers].accPass, accPass);
+
+			users[numberOfUsers].numOfLogIns = 0;
+
+			strcpy(users[numberOfUsers].accState, "Activated");
+			strcpy(users[numberOfUsers].accCondition, "Active");
+
+			users[numberOfUsers].accBalance = 0;
+
+			writeUsers(users, ++numberOfUsers);
+			free(users);
 		}
 		else if(checkExitCharacter(character)) checkShouldIRun = 0;
 		else printf("Greska. Unesite ponovo!\n");

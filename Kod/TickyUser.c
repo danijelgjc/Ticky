@@ -1,5 +1,5 @@
-#include "TickyUser.h"
-void createUser(FILE* stream);
+/*#include "TickyUser.h"
+
 void userOption(struct Info info, FILE* stream)
 {
 	struct User user;
@@ -119,3 +119,4 @@ void buyTicket(struct User* user, FILE* stream)
 		printf("Sifra dogadjaja nije ispravna!");
 
 }
+*/

@@ -1,4 +1,4 @@
-#include "TickyClient.h"
+/* #include "TickyClient.h"
 void clientOption(struct Info* info, FILE* stream)
 {
 	if (clientLogin(info, stream)) {
@@ -59,7 +59,7 @@ int clientLogIn(struct Info* info, FILE* stream) {
 
 	do {
 
-		/*if (info->firstTime == 0) {
+		if (info->firstTime == 0) {
 
 			printf("Unesite ime naloga: ");
 			modifyCharacter(client.accountName, 30, stream);
@@ -91,7 +91,7 @@ int clientLogIn(struct Info* info, FILE* stream) {
 				shouldIRun = 0;
 				free(clients);
 			}
-		}*/
+		}
 		//else {
 
 			printf("Unesite ime naloga: ");
@@ -105,14 +105,14 @@ int clientLogIn(struct Info* info, FILE* stream) {
 
 				int numberOfClient = 0;
 				struct Client* clients = getClients(&numberOfClient);
-				/*if (++clients[numberOfClient].numberOfLogIns == info->allowedNumber) {// Mozda nesto ne valja sa numberOfClients
+				if (++clients[numberOfClient].numberOfLogIns == info->allowedNumber) {// Mozda nesto ne valja sa numberOfClients
 
 					char newClientPass[30] = { '\0' };
 					changeAccountCredentials(newClientPass, 30, stream);
 
 					strcpy(clients[clientNumber].accountPass, newClientPass);
 					clients[clientNumber].numberOfLogIns = 0;
-				}*/
+				}
 				writeClients(clients, numberOfClient);
 				shouldIRun = 0;
 				free(clients);
@@ -220,4 +220,4 @@ void deleteEvent(char** eventCode)
 		writeEvents(events, numberOfEvents - 1);
 	}
 	else printf("Cvor nije pronadjen!\n");
-}
+}*/

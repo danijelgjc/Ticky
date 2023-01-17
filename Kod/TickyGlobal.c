@@ -138,13 +138,13 @@ struct User* getUsers(int* numberOfUsers) {
 		users = calloc(*numberOfUsers, sizeof(struct User));
 
 		for(int i = 0; i < *numberOfUsers; i++)
-			fscanf(stream, "%s %s %d %s %s %lf\n", users[i].accName, users[i].accPass, &users[i].numOfLogIns, users[i].accState, users[i].accCondition, &users[i].accBalance);
+			fscanf(stream, "%s %s %s %s %d %s %s %lf\n", users[i].realName, users[i].realSurName, users[i].accName, users[i].accPass, &users[i].numOfLogIns, users[i].accState, users[i].accCondition, &users[i].accBalance);
 
 		fclose(stream);
 	}
 	return users;
 }
-struct Event* getEvents(int* numberOfEvents)
+/*struct Event* getEvents(int* numberOfEvents)
 {
 	struct Event* events = NULL;
 	FILE* stream;
@@ -185,7 +185,7 @@ void printEvents()
 	for (int i = 0; i < numOfEvents; i++) {
 		fprint("%s %s %s %d.%d.%d\n", events[i].eventCode, events[i].eventName, events[i].eventPlace, events[i].date.dd, events[i].date.mm, events[i].date.mm, events[i].date.yy);
 	}
-}
+}*/
 
 struct Info readNumberOfLogIns() {
 
@@ -310,8 +310,24 @@ void writeUsers(struct User* users, int numberOfUsers) {
 
 		fprintf(stream, "%d\n", numberOfUsers);
 		for(int i = 0; i < numberOfUsers; i++)
-			fprintf(stream, "%s %s %d %s %s %lf\n", users[i].accName, users[i].accPass, users[i].numOfLogIns, users[i].accState, users[i].accCondition);
+			fprintf(stream, "%s %s %s %s %d %s %s %lf\n", users[i].realName, users[i].realSurName, users[i].accName, users[i].accPass, users[i].numOfLogIns, users[i].accState, users[i].accCondition, users[i].accBalance);
 
 		fclose(stream);
 	}
+}
+
+int validationPass(char* string) {
+
+	if(strlen(string) > 30 || strlen(string) < 5) {
+
+		printf("Ime nije zadovoljavajuce duzine: ");
+		return 1;
+	}
+	for(int i = 0; i < strlen(string); i++)
+		if(!isalpha(string[i])) {
+
+			printf("Karakter %c nije dozvoljen. ", string[i]);
+			return 1;
+		}
+	return 0;
 }

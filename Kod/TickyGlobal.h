@@ -26,11 +26,13 @@ struct Client {
 	char accPass[30];
 	int numOfLogIns;
 	char accState[30];		// Suspended | Activated
-	char accCondition[30]; 	// Deleted | Active
+	char accCondition[30]; 		// Deleted | Active
 };
 
 struct User {
-
+	
+	char realName[30];
+	char realSurName[30];
 	char accName[30];
 	char accPass[30];
 	int numOfLogIns;
@@ -63,6 +65,8 @@ struct soldTickets
 	int howMany;
 	char accName[30];
 };
+
+int validationPass(char*);
 
 // Funkcija koja stvara pocetne datoteke
 // admin.txt i client.txt za sada
