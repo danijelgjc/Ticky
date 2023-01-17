@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 struct Admin {
 
@@ -39,30 +40,20 @@ struct User {
 	char accCondition[30];
 	double accBalance;
 };
-struct Date
-{
-	int dd;
-	int mm;
-	int yy;
-};
+
 struct Event
 {
-	char eventCode[7];
+	char eventCode[10];
 	char eventName[30];
-	char eventPlace[30];
-	struct Date date;
-};
-struct Ticket
-{
-	char eventCode[7];
-	double prise;
 
-};
-struct soldTickets
-{
-	struct Ticket ticket;
-	int howMany;
-	char accName[30];
+	char eventPlace[30];
+	int numTickets;
+	char date[30];
+	
+	char time[30];
+	double ticketPrice;
+
+	char** soldTickets;
 };
 
 int validationPass(char*);
@@ -87,9 +78,13 @@ int compareAccountName(char*);
 struct Admin* getAdmins(int*);
 
 struct Client* getClients(int*);
+
 struct User* getUsers(int*);
-struct Event* getEvents(int*);//DONE
+
+struct Event* getEvents(int*);
+
 struct Ticket* getTickets(int*);//TODO
+
 void printEvents();
 // Funkcija koja preko pokazivaca
 // daje informaciju o broju dozvoljenih

@@ -144,23 +144,58 @@ struct User* getUsers(int* numberOfUsers) {
 	}
 	return users;
 }
-/*struct Event* getEvents(int* numberOfEvents)
-{
+
+struct Event* getEvents(int* numberOfEvents) {
+
 	struct Event* events = NULL;
 	FILE* stream;
 	if ((stream = fopen("../Baza_podataka/event.txt", "r")) != NULL) {
-		fscanf(stream, "%d\n", numberOfEvents);
+		
+		fscanf(stream, "%d\n", &numberOfEvents);
+
 		if (*numberOfEvents == 0) {
 			fclose(stream);
 			return events;
 		};
-		struct Event* eventss = calloc(numberOfEvents, sizeof(struct Event));
+		
+		events = calloc(*numberOfEvents, sizeof(struct Event));
+		
 		for (int i = 0; i < *numberOfEvents; i++)
-			fscanf(stream, "%s %s %s %d %d %d\n", events[i].eventCode, events[i].eventName, events[i].eventPlace, events[i].date.dd, events[i].date.mm, events[i].date.yy);
+			fscanf(stream, "%s %s %s %d %s %s %lf\n", events[i].eventCode, events[i].eventName, events[i].eventPlace, &events[i].numTickets, events[i].date, events[i].time, &events[i].ticketPrice);
+		
 		fclose(stream);
 	}
+
+	for(int i = 0; i < *numberOfEvents; i++) {
+
+		char newFile[50] = { '\0' };
+		strcat(newFile, "../Baza_podataka/");
+		strcat(newFile, events[i].eventCode);
+		strcat(newFile, ".txt");
+
+		if((stream = fopen(newFile, "r")) != NULL) {
+
+			char** temp = NULL;
+			temp = calloc(events[i].numTickets, sizeof(char*));
+			for(int j = 0; j < events[i].numTickets; j++) {
+
+				char dump[50] = { '\0' };
+				fscanf(stream, "%s\n", dump);
+				
+				temp[i] = calloc(strlen(dump) + 1, 1);
+				strcpy(temp[i], dump);
+			}
+
+			events[i].soldTickets = temp;
+			temp = NULL;
+			fclose(stream);
+		}
+	}
+
 	return events;
 }
+
+/*
 struct Ticket* getTickets(int* numberOfTickets)
 {
 	struct Ticket* tickets = NULL;

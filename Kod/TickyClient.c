@@ -1,24 +1,29 @@
 #include "TickyClient.h"
+#include "TickyGlobal.h"
 
-void clientOption(struct Info* info, FILE* stream)
-{
+void clientOption(struct Info* info, FILE* stream) {
+
 	if (clientLogIn(info, stream)) {
+		
 		int checkShouldIRun = 1;
-		do
-		{
+		do {
+		
 			printf("Upravljanje dogadjajima [1], Izvjestaji i pregledi[2], Kraj [0]: ");
 
 			char character[15] = { '\0' };
 			modifyCharacter(character, 15, stream);
 			if (checkFirstCharacter(character)) {
+		
 				int checkShouldIRun = 1;
-				do
-				{
+				do {
+				
 					char character1[15] = { '\0' };
 					printf("Kreiranje dogadjaja [1], Brisanje dogadjaja [2], Kraj [0]: ");
 					modifyCharacter(character1, 15, stream);
+				
 					if(checkFirstCharacter(character1)) {
-						// createEvent(stream);
+						
+						createEvent(stream);
 					}
 					else if(checkSecondCharacter(character1)) {
 						// deleteEvent(stream);
@@ -26,15 +31,18 @@ void clientOption(struct Info* info, FILE* stream)
 					else if(checkExitCharacter(character1)) checkShouldIRun = 0;
 					else printf("Greska. Unesite ponovo!\n");
 
-				} while (checkShouldIRun);
+				} while(checkShouldIRun);
 			}
-			else if (checkSecondCharacter(character))
+			else if(checkSecondCharacter(character)) {
+
 				do
 				{
 					int checkSouldIRun = 1;
 					char character1[15] = { '\0' };
+					
 					printf("Pregled prodanih ulaznica [1], Izvjestaj o prodaji[2], Kraj[0]: ");
 					modifyCharacter(character1, 15, stream);
+					
 					if(checkFirstCharacter(character1)) {
 						// checkSoldTickets(stream);
 					}
@@ -45,6 +53,7 @@ void clientOption(struct Info* info, FILE* stream)
 					else printf("Greska. Unesite ponovo!\n");
 
 				} while (checkShouldIRun);
+			}
 			//else if (checkThirdCharacter())
 			else if (checkExitCharacter(character)) checkShouldIRun = 0;
 			else printf("Greska. Unesite ponovo!\n");
@@ -106,43 +115,123 @@ int checkClientLogInInfo(struct Client client, int* clientNumber) {
 	return 0;
 }	
 
-/*void writeEvent(struct Event* events, int numberOfEvent) {
+void writeEvent(struct Event* events, int numberOfEvents) {
 
 	FILE* stream;
+	int j = numberOfEvents;
 
 	if ((stream = fopen("../Baza_podataka/event.txt", "w")) != NULL) {
-		fprintf(stream, "%d\n", numberOfEvent);
-		for(int i=0;i<numberOfEvent;i++)
-			fprintf(stream, "%s %s %s %d %d %d\n",events[i].eventCode, events[i].eventName, events[i].eventPlace, events[i].date.dd,events[i].date.dd,events[i].date.mm,events[i].date.yy);
+		
+		fprintf(stream, "%d\n", j);
+		for(int i = 0; i < j; i++) {
+		
+			fprintf(stream, "%s %s %s %d %s %s %lf\n", events[i].eventCode, events[i].eventName, events[i].eventPlace, events[i].numTickets, events[i].date, events[i].time, events[i].ticketPrice);
+
+			FILE* stream_1;
+
+			char newFile[50] = { '\0' };
+			strcat(newFile, "../Baza_podataka/");
+			strcat(newFile, events[i].eventCode);
+			strcat(newFile, ".txt");
+
+			if((stream_1 = fopen(newFile, "w")) != NULL) {
+
+				for(int k = 0; k < events[i].numTickets; k++)
+					fprintf(stream, "%s\n", events[i].soldTickets[k]);
+
+				fclose(stream_1);
+			}
+		}
 		fclose(stream);
 	}
 }
 
-void createEvent(stream)
-{
-	struct Event event;
+char* generateEventCode() {
+
+	char* newEventCode = NULL;
+	newEventCode = calloc(10, 1);
+
 	int numberOfEvents = 0;
 	struct Event* events = getEvents(&numberOfEvents);
-	//do {
-	printf("Unesite ime dogadjaja: ");
-	modifyCharacter(event.eventName, 30, stream);
-	printf("Unesite mjesto dogadjaja: ");
-	modifyCharacter(event.eventPlace, 30, stream);
-	printf("Unesite sifru dogadjaja: ");
-	modifyCharacter(event.eventCode, 7, stream);
-	printf("Unesite datum (dd.mm.yyyy): ");
-	scanf("%d.%d.%d", event.date.dd, event.date.mm, event.date.yy);
-	//}while(1); Koji je uslov da se ovo odradi
-	events = realloc(events, (numberOfEvents + 1) * sizeof(struct Client));
-	strcpy(events[numberOfEvents].eventCode, event.eventCode);
-	strcpy(events[numberOfEvents].eventName, event.eventName);
-	strcpy(events[numberOfEvents].eventPlace, event.eventPlace);
-	events[numberOfEvents].date.dd = event.date.dd;
-	events[numberOfEvents].date.mm = event.date.mm;
-	events[numberOfEvents].date.yy = event.date.yy;
-	writeEvents(events, ++numberOfEvents);
+
+	int shouldIRun = 1;
+	srand(time(NULL));
+
+	do {
+		shouldIRun = 0;
+		int newID = 1000 + rand() % 9000;
+		char ID[10] = { '\0' };
+		sprintf(ID, "%d", newID);
+
+		for(int i = 0; i < numberOfEvents; i++) 
+			if(strcmp(ID, events[i].eventCode) == 0)
+				shouldIRun = 1;
+		
+		if(shouldIRun == 0)
+			strcpy(newEventCode, ID);
+
+	} while(shouldIRun);
+
 	free(events);
+
+	return newEventCode;
 }
+
+void createEvent(FILE* stream) {
+
+	char* newEventCode = generateEventCode();
+
+	char eventName[30] = { '\0' };
+	printf("Unesite ime dogadjaja: ");
+	modifyCharacter(eventName, 30, stream);
+
+	printf("Unesite datum odrzavanja: ");
+	printf("\nDan, mjesec i godina: ");
+	char date[30] = { '\0' };
+	modifyCharacter(date, 30, stream);
+
+	printf("Unesite mjesto odrzavanja: ");
+	char eventPlace[30] = { '\0' };
+	modifyCharacter(eventPlace, 30, stream);
+
+	printf("Unesite vrijeme odrzavanja: ");
+	printf("\nSati i minute: ");
+	char time[30] = { '\0' };
+	modifyCharacter(time, 30, stream);
+
+	printf("Unesite cijenu ulaznica: ");
+	double price;
+	char ticketPrice[30] = { '\0' };
+	modifyCharacter(ticketPrice, 30, stream);
+	price = atof(ticketPrice);
+
+	int numberOfEvents = 0;
+	struct Event* events = getEvents(&numberOfEvents);
+
+	events = realloc(events, (numberOfEvents + 1) * sizeof(struct Event));
+
+	int i = numberOfEvents;
+
+	strcpy(events[i].eventCode, newEventCode);
+	strcpy(events[i].eventName, eventName);
+	strcpy(events[i].eventPlace, eventPlace);
+
+	events[i].numTickets = 0;
+	events[i].ticketPrice = price;
+
+	strcpy(events[i].date, date);
+	strcpy(events[i].time, time);
+
+	events[i].soldTickets = NULL;
+
+	writeEvent(events, ++i);
+
+	free(events);
+	free(newEventCode);
+
+}
+
+/*
 void freeEvent(struct Event* event)
 {
 	free(event->eventCode);

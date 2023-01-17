@@ -17,6 +17,8 @@ void checkSales(FILE*);//TODO
 
 void deleteEvent(char* eventCode);//DONE
 
+char* generateEventCode();
+
 int clientLogIn(struct Info*, FILE*); 			// DONE
 
 #endif
