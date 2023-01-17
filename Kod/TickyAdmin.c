@@ -167,8 +167,8 @@ int checkAdminLogInInfo(struct Admin admin, int* adminNumber) {
 
 	int numberOfAdmins = 0;
 	struct Admin* admins = getAdmins(&numberOfAdmins);
-	for(int i = 0; i < numberOfAdmins; i++)
-	{
+	for(int i = 0; i < numberOfAdmins; i++) {
+
 		if(strcmp(admins[i].accountName, admin.accountName) == 0 &&
 				strcmp(admins[i].accountPass, admin.accountPass) == 0) {
 
@@ -191,20 +191,6 @@ void writeAdmins(struct Admin* admins, int numberOfAdmins) {
 		fprintf(stream, "%d\n", numberOfAdmins);
 		for(int i = 0; i < numberOfAdmins; i++)
 			fprintf(stream, "%s %s %d\n", admins[i].accountName, admins[i].accountPass, admins[i].numberOfLogIns);
-
-		fclose(stream);
-	}
-}
-
-void writeClients(struct Client* clients, int numberOfClients) {
-
-	FILE* stream;
-
-	if((stream = fopen("../Baza_podataka/client.txt", "w")) != NULL) {
-
-		fprintf(stream, "%d\n", numberOfClients);
-		for(int i = 0; i < numberOfClients; i++)
-			fprintf(stream, "%s %s %d %s %s", clients[i].accName, clients[i].accPass, clients[i].numOfLogIns, clients[i].accState, clients[i].accCondition);
 
 		fclose(stream);
 	}

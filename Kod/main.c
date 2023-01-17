@@ -43,8 +43,8 @@ int main() {
 					adminOption(&info, stdin);
 				}
 				else if(checkSecondCharacter(character1)) {
-					// TODO: Prijava na klijent nalog
 
+					clientOption(&info, stdin);
 				}
 				else if(checkThirdCharacter(character1)) {
 					// TODO: Prijava na korisnik nalog

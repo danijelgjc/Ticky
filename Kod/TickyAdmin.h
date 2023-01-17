@@ -19,11 +19,7 @@ void cancelPass(FILE*);		// DONE
 
 int checkAdminLogInInfo(struct Admin, int*); // DONE
 
-
-
 void writeAdmins(struct Admin*, int);	// DONE
-
-void writeClients(struct Client*, int);	// DONE
 
 void writeInfo(struct Info*);	// DONE
 

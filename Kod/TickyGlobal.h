@@ -1,6 +1,5 @@
 #ifndef _TickyGlobal_h_
 #define _TickyGlobal_h_
-#define _CRT_SECURE_NO_WARNINGS
 
 #include <stdio.h>
 #include <ctype.h>
@@ -146,5 +145,7 @@ void printClients();
 void printUsers();
 
 void writeUsers(struct User*, int);
+
+void writeClients(struct Client*, int);
 
 #endif

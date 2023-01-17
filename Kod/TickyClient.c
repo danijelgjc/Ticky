@@ -1,12 +1,13 @@
-/* #include "TickyClient.h"
+#include "TickyClient.h"
+
 void clientOption(struct Info* info, FILE* stream)
 {
-	if (clientLogin(info, stream)) {
+	if (clientLogIn(info, stream)) {
 		int checkShouldIRun = 1;
 		do
 		{
 			printf("Upravljanje dogadjajima [1], Izvjestaji i pregledi[2], Kraj [0]: ");
-			// TODO: Opcija tri, ako postoji
+
 			char character[15] = { '\0' };
 			modifyCharacter(character, 15, stream);
 			if (checkFirstCharacter(character)) {
@@ -16,16 +17,15 @@ void clientOption(struct Info* info, FILE* stream)
 					char character1[15] = { '\0' };
 					printf("Kreiranje dogadjaja [1], Brisanje dogadjaja [2], Kraj [0]: ");
 					modifyCharacter(character1, 15, stream);
-					if (checkFirstCharacter(character1))
-					{
-						createEvent(stream);
+					if(checkFirstCharacter(character1)) {
+						// createEvent(stream);
 					}
-					if (checkSecondCharacter(character1))
-					{
-						deleteEvent(stream);
+					else if(checkSecondCharacter(character1)) {
+						// deleteEvent(stream);
 					}
-					else if (checkExitCharacter(character1)) checkShouldIRun = 0;
+					else if(checkExitCharacter(character1)) checkShouldIRun = 0;
 					else printf("Greska. Unesite ponovo!\n");
+
 				} while (checkShouldIRun);
 			}
 			else if (checkSecondCharacter(character))
@@ -35,23 +35,23 @@ void clientOption(struct Info* info, FILE* stream)
 					char character1[15] = { '\0' };
 					printf("Pregled prodanih ulaznica [1], Izvjestaj o prodaji[2], Kraj[0]: ");
 					modifyCharacter(character1, 15, stream);
-					if (ckeckFirstCharacter(character1))
-					{
-						checkSoldTickets(stream);
+					if(checkFirstCharacter(character1)) {
+						// checkSoldTickets(stream);
 					}
-					else if (checksecondCharacter(character1))
-					{
-						checkSales(stream);
+					else if(checkSecondCharacter(character1)) {
+						// checkSales(stream);
 					}
 					else if (checkExitCharacter(character1)) checkShouldIRun = 0;
 					else printf("Greska. Unesite ponovo!\n");
+
 				} while (checkShouldIRun);
-					//else if (checkThirdCharacter())
+			//else if (checkThirdCharacter())
 			else if (checkExitCharacter(character)) checkShouldIRun = 0;
 			else printf("Greska. Unesite ponovo!\n");
 		} while (checkShouldIRun);
 	}
 }
+
 int clientLogIn(struct Info* info, FILE* stream) {
 
 	struct Client client;
@@ -59,92 +59,42 @@ int clientLogIn(struct Info* info, FILE* stream) {
 
 	do {
 
-		if (info->firstTime == 0) {
+		printf("Unesite ime naloga: ");
+		modifyCharacter(client.accName, 30, stream);
 
-			printf("Unesite ime naloga: ");
-			modifyCharacter(client.accountName, 30, stream);
-			if (strcmp("client", client.accountName) != 0) {
+		printf("Unesite lozinku naloga: ");
+		modifyCharacter(client.accPass, 30, stream);
 
-				printf("Pogresno ime: \n");
-				continue;
-			}
+		int clientNumber = 0;
+		if (checkClientLogInInfo(client, &clientNumber)) {
 
-			printf("Unesite lozinku naloga: ");
-			modifyCharacter(client.accountPass, 30, stream);
-			if (strcmp("client", client.accountPass) != 0) {
-
-				printf("Pogresna lozinka: \n");
-				continue;
-			}
-			else {
+			int numberOfClient = 0;
+			struct Client* clients = getClients(&numberOfClient);
+			if (++clients[clientNumber].numOfLogIns == info->allowedNumber) {
 
 				char newClientPass[30] = { '\0' };
 				changeAccountCredentials(newClientPass, 30, stream);
 
-				int numberOfClients = 0;
-				struct Client* clients = getClients(&numberOfClients);
-
-				strcpy(clients[0].accountPass, newClientPass);
-				writeClients(clients, numberOfClientss);
-
-				info->firstTime = 1;
-				shouldIRun = 0;
-				free(clients);
+				strcpy(clients[clientNumber].accPass, newClientPass);
+				clients[clientNumber].numOfLogIns = 0;
 			}
+			writeClients(clients, numberOfClient);
+			shouldIRun = 0;
+			free(clients);
 		}
-		//else {
 
-			printf("Unesite ime naloga: ");
-			modifyCharacter(client.accName, 30, stream);
-
-			printf("Unesite lozinku naloga: ");
-			modifyCharacter(client.accPass, 30, stream);
-
-			int clientNumber = 0;
-			if (checkClientLogInInfo(client, &clientNumber)) {
-
-				int numberOfClient = 0;
-				struct Client* clients = getClients(&numberOfClient);
-				if (++clients[numberOfClient].numberOfLogIns == info->allowedNumber) {// Mozda nesto ne valja sa numberOfClients
-
-					char newClientPass[30] = { '\0' };
-					changeAccountCredentials(newClientPass, 30, stream);
-
-					strcpy(clients[clientNumber].accountPass, newClientPass);
-					clients[clientNumber].numberOfLogIns = 0;
-				}
-				writeClients(clients, numberOfClient);
-				shouldIRun = 0;
-				free(clients);
-			}
-		//}
-
-	} while (shouldIRun);
-
-	writeInfo(info);
+	} while(shouldIRun);
 
 	return 1;
-}
-void writeEvent(struct Event* events, int numberOfEvent) {
-
-	FILE* stream;
-
-	if ((stream = fopen("../Baza_podataka/event.txt", "w")) != NULL) {
-		fprintf(stream, "%d\n", numberOfEvent);
-		for(int i=0;i<numberOfEvent;i++)
-		fprintf(stream, "%s %s %s %d %d %d\n",events[i].eventCode, events[i].eventName, events[i].eventPlace, events[i].date.dd,events[i].date.dd,events[i].date.mm,events[i].date.yy);
-		fclose(stream);
-	}
 }
 
 int checkClientLogInInfo(struct Client client, int* clientNumber) {
 
 	int numberOfClients = 0;
 	struct Client* clients = getClients(&numberOfClients);
-	for (int i = 0; i < numberOfClients; i++)
-	{
-		if (strcmp(clients[i].accName, client.accName) == 0 &&
-			strcmp(clients[i].accPass, client.accPass) == 0) {
+	for(int i = 0; i < numberOfClients; i++) {
+
+		if(strcmp(clients[i].accName, client.accName) == 0 && strcmp(clients[i].accPass, client.accPass) == 0) {
 
 			*clientNumber = i;
 			free(clients);
@@ -154,6 +104,18 @@ int checkClientLogInInfo(struct Client client, int* clientNumber) {
 	free(clients);
 	printf("Pogresno uneseni podaci!\n");
 	return 0;
+}	
+
+/*void writeEvent(struct Event* events, int numberOfEvent) {
+
+	FILE* stream;
+
+	if ((stream = fopen("../Baza_podataka/event.txt", "w")) != NULL) {
+		fprintf(stream, "%d\n", numberOfEvent);
+		for(int i=0;i<numberOfEvent;i++)
+			fprintf(stream, "%s %s %s %d %d %d\n",events[i].eventCode, events[i].eventName, events[i].eventPlace, events[i].date.dd,events[i].date.dd,events[i].date.mm,events[i].date.yy);
+		fclose(stream);
+	}
 }
 
 void createEvent(stream)
@@ -162,14 +124,14 @@ void createEvent(stream)
 	int numberOfEvents = 0;
 	struct Event* events = getEvents(&numberOfEvents);
 	//do {
-		printf("Unesite ime dogadjaja: ");
-		modifyCharacter(event.eventName, 30, stream);
-		printf("Unesite mjesto dogadjaja: ");
-		modifyCharacter(event.eventPlace, 30, stream);
-		printf("Unesite sifru dogadjaja: ");
-		modifyCharacter(event.eventCode, 7, stream);
-		printf("Unesite datum (dd.mm.yyyy): ");
-		scanf("%d.%d.%d", event.date.dd, event.date.mm, event.date.yy);
+	printf("Unesite ime dogadjaja: ");
+	modifyCharacter(event.eventName, 30, stream);
+	printf("Unesite mjesto dogadjaja: ");
+	modifyCharacter(event.eventPlace, 30, stream);
+	printf("Unesite sifru dogadjaja: ");
+	modifyCharacter(event.eventCode, 7, stream);
+	printf("Unesite datum (dd.mm.yyyy): ");
+	scanf("%d.%d.%d", event.date.dd, event.date.mm, event.date.yy);
 	//}while(1); Koji je uslov da se ovo odradi
 	events = realloc(events, (numberOfEvents + 1) * sizeof(struct Client));
 	strcpy(events[numberOfEvents].eventCode, event.eventCode);
@@ -203,9 +165,9 @@ void deleteEvent(char** eventCode)
 		{
 			events[i] = events[i + 1];
 		}
-		
+
 		else if (find && (i == (numberOfEvents - 1))) {
-			
+
 		}
 		else if (!strcmp(eventCode, events[i].eventCode))
 		{

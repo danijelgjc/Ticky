@@ -316,6 +316,20 @@ void writeUsers(struct User* users, int numberOfUsers) {
 	}
 }
 
+void writeClients(struct Client* clients, int numberOfClients) {
+
+	FILE* stream;
+
+	if((stream = fopen("../Baza_podataka/client.txt", "w")) != NULL) {
+
+		fprintf(stream, "%d\n", numberOfClients);
+		for(int i = 0; i < numberOfClients; i++)
+			fprintf(stream, "%s %s %d %s %s", clients[i].accName, clients[i].accPass, clients[i].numOfLogIns, clients[i].accState, clients[i].accCondition);
+
+		fclose(stream);
+	}
+}
+
 int validationPass(char* string) {
 
 	if(strlen(string) > 30 || strlen(string) < 5) {
