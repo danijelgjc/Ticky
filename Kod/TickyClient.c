@@ -19,16 +19,12 @@ void clientOption(struct Info* info, FILE* stream) {
 				do {
 				
 					char character1[15] = { '\0' };
-					printf("Kreiranje dogadjaja [1], Brisanje dogadjaja [2], Kraj [0]: ");
+					printf("Kreiranje dogadjaja [1], Kraj [0]: ");
 					modifyCharacter(character1, 15, stream);
 				
 					if(checkFirstCharacter(character1)) {
 						
-						createEvent(stream);
-					}
-					else if(checkSecondCharacter(character1)) {
-						
-						// deleteEvent(stream, loggedClient);
+						createEvent(stream, loggedClient);
 					}
 					else if(checkExitCharacter(character1)) checkShouldIRun1 = 0;					
 					else printf("Greska. Unesite ponovo!\n");
@@ -41,21 +37,20 @@ void clientOption(struct Info* info, FILE* stream) {
 				do
 				{
 					char character1[15] = { '\0' };
-					printf("Pregled prodanih ulaznica [1], Izvjestaj o prodaji[2], Kraj[0]: ");
+					printf("Izvjestaj prodanih ulaznica [1], Izvjestaj prodanih ulaznica po periodu [2], Kraj[0]: ");
 					modifyCharacter(character1, 15, stream);
 					
 					if(checkFirstCharacter(character1)) {
-						// checkSoldTickets(stream);
+						
+						printSoldTickets(loggedClient);
 					}
 					else if(checkSecondCharacter(character1)) {
-						// checkSales(stream);
 					}
 					else if (checkExitCharacter(character1)) checkShouldIRun1 = 0;
 					else printf("Greska. Unesite ponovo!\n");
 
 				} while(checkShouldIRun1);
 			}
-			//else if (checkThirdCharacter())
 			else if (checkExitCharacter(character)) checkShouldIRun = 0;
 			else printf("Greska. Unesite ponovo!\n");
 		} while (checkShouldIRun);
@@ -95,6 +90,20 @@ int clientLogIn(struct Info* info, FILE* stream, char* string) {
 
 	} while(shouldIRun);
 
+	int numberOfClients = 0;
+	struct Client* clients = getClients(&numberOfClients);
+
+	for(int i = 0; i < numberOfClients; i++) {
+
+		if(clients[i].accName, client.accName)
+			if(strcmp(clients[i].accState, "Suspended") == 0 || strcmp(clients[i].accCondition, "Deleted") == 0) {
+
+				printf("Nedozvoljen pristup.\n");
+				free(clients);
+				return 0;
+			}
+	}
+
 	strcpy(string, client.accName);
 
 	return 1;
@@ -128,8 +137,6 @@ void writeEvent(struct Event* events, int numberOfEvents) {
 		fprintf(stream, "%d\n", j);
 		for(int i = 0; i < j; i++) {
 		
-			fprintf(stream, "%d %s %s %s %d %s %s %lf\n", events[i].eventCode, events[i].accName, events[i].eventName, events[i].eventPlace, events[i].numTickets, events[i].date, events[i].time, events[i].ticketPrice);
-
 			FILE* stream_1;
 
 			char newFile[50] = { '\0' };
@@ -141,15 +148,27 @@ void writeEvent(struct Event* events, int numberOfEvents) {
 			strcat(newFile, dump);
 			strcat(newFile, ".txt");
 
+			int checker = 0;
+			int checker1;
+			int counter = 0;	// broji koliko ulaznica je skinuto
 			if((stream_1 = fopen(newFile, "w")) != NULL) {
 
-				if(events[i].soldTickets != NULL) {
+				if(events[i].numTickets != 0) {
 					for(int k = 0; k < events[i].numTickets; k++) {
-						fprintf(stream, "%d\n", events[i].soldTickets[k]);
+						
+						if(events[i].soldTickets[k] != -1)
+							fprintf(stream_1, "%d\n", events[i].soldTickets[k]);
+						else {
+							checker = 1;
+							checker1 = i;
+							counter++;
+						}
 					}
+					if(checker) events[checker1].numTickets -= counter;
 				}
 				fclose(stream_1);
 			}
+			fprintf(stream, "%d %s %s %s %d %s %s %lf %s\n", events[i].eventCode, events[i].accName, events[i].eventName, events[i].eventPlace, events[i].numTickets, events[i].date, events[i].time, events[i].ticketPrice, events[i].isBlocked);
 		}
 		fclose(stream);
 	}
@@ -178,12 +197,12 @@ int generateEventCode() {
 
 	} while(shouldIRun);
 
-	free(events);
+	freeEvent(events, numberOfEvents);
 
 	return newEventCode;
 }
 
-void createEvent(FILE* stream) {
+void createEvent(FILE* stream, char* loggedClient) {
 
 	int newEventCode = generateEventCode();
 
@@ -223,6 +242,8 @@ void createEvent(FILE* stream) {
 	strcpy(events[i].eventName, eventName);
 	strcpy(events[i].eventPlace, eventPlace);
 
+	strcpy(events[i].accName, loggedClient);
+
 	events[i].numTickets = 0;
 	events[i].ticketPrice = price;
 
@@ -231,52 +252,60 @@ void createEvent(FILE* stream) {
 
 	events[i].soldTickets = NULL;
 
+	strcpy(events[i].isBlocked, "No");
+
 	writeEvent(events, ++i);
 
-	free(events);
+	freeEvent(events, i);
 }
 
-/*
-void freeEvent(struct Event* event)
-{
-	free(event->eventCode);
-	free(event->eventName);
-	free(event->eventPlace);
-	free(event->date.dd);
-	free(event->date.mm);
-	free(event->date.yy);
-}
-
-
-void deleteEvent(FILE* stream, char* loggedClient) {
+void printSoldTickets(char* loggedClient) {
 
 	int numberOfEvents = 0;
-	int find = 0;
 	struct Event* events = getEvents(&numberOfEvents);
-	struct Event* nodeToDelete;
-	int i=0;
-	for (i = 0; i< numberOfEvents; i++)
-	{
-		if(find && (i!=(numberOfEvents-1)))
-		{
-			events[i] = events[i + 1];
-		}
 
-		else if (find && (i == (numberOfEvents - 1))) {
+	int counter = 0;
+	
+	for(int i = 0; i < numberOfEvents; i++) {
 
-		}
-		else if (!strcmp(eventCode, events[i].eventCode))
-		{
-			freeEvent(events+i);
-			events[i] = events[i + 1];
-			find=1;
+		if(strcmp(events[i].accName, loggedClient) == 0) {
+
+			counter++;
 		}
 	}
-	if (find) {
-		freeEvent(events + i);
-		printf("Cvor uspjesno obrisan!\n");
-		writeEvent(events, numberOfEvents - 1);
+
+	int* numTickets = calloc(counter, sizeof(int));
+	char** eventNames = calloc(counter, sizeof(char*));
+
+	int j = 0;
+
+	for(int i = 0; i < numberOfEvents; i++) {
+
+		if(strcmp(events[i].accName, loggedClient) == 0) {
+
+			numTickets[j] = events[i].numTickets;
+			char dump[30] = { '\0' };
+			strcpy(dump, events[i].eventName);
+
+			eventNames[j] = calloc(strlen(events[i].eventName) + 1, 1);
+			strcpy(eventNames[j], dump);
+			j++;
+		}
 	}
-	else printf("Cvor nije pronadjen!\n");
+
+	for(int i = 0; i < counter; i++) {
+
+		if(numTickets[i] != 0) {
+		
+			printf("%d x %s\n", numTickets[i], eventNames[i]);
+		}
+	}
+
+	freeEvent(events, numberOfEvents);
+	free(numTickets);
+	for(int i = 0; i < counter; i++) {
+
+		free(eventNames[i]);
+	}
+	free(eventNames);
 }
-*/

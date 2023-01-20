@@ -23,6 +23,12 @@ void createEnvironment() {
 		fprintf(stream, "%d\n", 0);
 		fclose(stream);
 	}
+
+	if((stream = fopen("../Baza_podataka/user.txt", "w")) != NULL) {
+
+		fprintf(stream, "%d\n", 0);
+		fclose(stream);
+	}
 }
 
 struct Admin* getAdmins(int* numberOfAdmins) {
@@ -151,18 +157,17 @@ struct Event* getEvents(int* numberOfEvents) {
 	FILE* stream;
 	if ((stream = fopen("../Baza_podataka/event.txt", "r")) != NULL) {
 		
-		fscanf(stream, "%d\n", &numberOfEvents);
+		fscanf(stream, "%d\n", numberOfEvents);
 
 		if (*numberOfEvents == 0) {
 			fclose(stream);
 			return events;
-		};
+		}
 		
 		events = calloc(*numberOfEvents, sizeof(struct Event));
 		
 		for (int i = 0; i < *numberOfEvents; i++)
-			fscanf(stream, "%d %s %s %s %d %s %s %lf\n", events[i].eventCode, events[i].accName, events[i].eventName, events[i].eventPlace, &events[i].numTickets, events[i].date, events[i].time, &events[i].ticketPrice);
-		
+			fscanf(stream, "%d %s %s %s %d %s %s %lf %s\n", &events[i].eventCode, events[i].accName, events[i].eventName, events[i].eventPlace, &events[i].numTickets, events[i].date, events[i].time, &events[i].ticketPrice, events[i].isBlocked);
 		fclose(stream);
 	}
 
@@ -177,6 +182,7 @@ struct Event* getEvents(int* numberOfEvents) {
 		strcat(newFile, dump);
 		strcat(newFile, ".txt");
 
+
 		if((stream = fopen(newFile, "r")) != NULL) {
 
 			int* temp = NULL;
@@ -184,8 +190,8 @@ struct Event* getEvents(int* numberOfEvents) {
 			for(int j = 0; j < events[i].numTickets; j++) {
 
 				int dump = 0;
-				fscanf(stream, "%d\n", dump);
-				temp[i] = dump;
+				fscanf(stream, "%d\n", &dump);
+				temp[j] = dump;
 			}
 			events[i].soldTickets = temp;
 			temp = NULL;
@@ -195,26 +201,6 @@ struct Event* getEvents(int* numberOfEvents) {
 
 	return events;
 }
-
-/*
-struct Ticket* getTickets(int* numberOfTickets)
-{
-	struct Ticket* tickets = NULL;
-	FILE* stream;
-	if ((stream = fopen("../Baza_podataka/ticket.txt", "r")) != NULL) {
-		fscanf(stream, "%d\n", numberOfTickets);
-		if (*numberOfTickets == 0) {
-			fclose(stream);
-			return tickets;
-		};
-		struct Event* eventss = calloc(numberOfTickets, sizeof(struct Event));
-		for (int i = 0; i < *numberOfTickets; i++)
-			fscanf(stream, "%s %lf\n", tickets[i].eventCode, tickets[i].prise);
-		fclose(stream);
-	}
-	return tickets;
-}
-*/
 
 struct Info readNumberOfLogIns() {
 
@@ -353,7 +339,7 @@ void writeClients(struct Client* clients, int numberOfClients) {
 
 		fprintf(stream, "%d\n", numberOfClients);
 		for(int i = 0; i < numberOfClients; i++)
-			fprintf(stream, "%s %s %d %s %s", clients[i].accName, clients[i].accPass, clients[i].numOfLogIns, clients[i].accState, clients[i].accCondition);
+			fprintf(stream, "%s %s %d %s %s\n", clients[i].accName, clients[i].accPass, clients[i].numOfLogIns, clients[i].accState, clients[i].accCondition);
 
 		fclose(stream);
 	}
@@ -374,3 +360,19 @@ int validationPass(char* string) {
 		}
 	return 0;
 }
+
+void freeEvent(struct Event* events, int numberOfEvents) {
+
+	if(events != NULL) {
+
+		if(numberOfEvents != 0) {
+
+			for(int i = 0; i < numberOfEvents; i++) {
+
+				if(events[i].soldTickets != NULL)
+					free(events[i].soldTickets);
+			}
+			free(events);
+		}
+	}
+}	

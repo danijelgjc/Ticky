@@ -3,26 +3,30 @@
 
 #include "TickyGlobal.h"
 
-void adminOption(struct Info*, FILE*); // TODO: Blokiranje dogadjaja
+void adminOption(struct Info*, FILE*);
 
-void createAdmin(FILE*);	// DONE
+void createAdmin(FILE*);
 
-void createClient(FILE*);	// DONE
+void createClient(FILE*);
 
-void activateAccount(FILE*);	// TODO:
+void activateAccount(FILE*);
 
-void suspendAccount(FILE*);	// TODO:	
+void suspendAccount(FILE*);
 
-void deleteAccount(FILE*);	// TODO: Kako sa dogadjajima i parama
+void deleteAccount(FILE*);
 
-void cancelPass(FILE*);		// DONE
+void blockEvent(FILE*);
 
-int checkAdminLogInInfo(struct Admin, int*); // DONE
+void printEvents();
 
-void writeAdmins(struct Admin*, int);	// DONE
+void cancelPass(FILE*);
 
-void writeInfo(struct Info*);	// DONE
+int checkAdminLogInInfo(struct Admin, int*);
 
-int adminLogIn(struct Info*, FILE*);	// DONE
+void writeAdmins(struct Admin*, int);
+
+void writeInfo(struct Info*);
+
+int adminLogIn(struct Info*, FILE*);
 
 #endif

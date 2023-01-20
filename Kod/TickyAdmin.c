@@ -1,6 +1,6 @@
 #include "TickyAdmin.h"
 #include "TickyGlobal.h"
-
+#include "TickyClient.h"
 
 void adminOption(struct Info* info, FILE* stream) {
 
@@ -64,12 +64,12 @@ void adminOption(struct Info* info, FILE* stream) {
 					}
 					else if(checkExitCharacter(character1)) checkShouldIRun1 = 0;
 					else printf("Greska. Unesite ponovo!\n");
-				
+
 				} while(checkShouldIRun1);
 			}
 			else if(checkThirdCharacter(character)) {
 
-				// TODO: Blokiranje dogadjaja
+				blockEvent(stream);
 			}
 			else if(checkExitCharacter(character)) checkShouldIRun = 0;
 			else printf("Greska. Unesite ponovo!\n");
@@ -286,13 +286,11 @@ void activateAccount(FILE* stream) {
 							printf("Nalog je aktiviran. \n");
 							strcpy(clients[i].accState, "Activated");
 							writeClients(clients, numberOfClients);
-							// TODO: Kako sa dogadjajima
-							// da li im se gleda neki vremenski raspon
 						}
 					}
 			}
 			else printf("Nema klijent naloga. \n");
-			
+
 			free(clients);
 		}
 		else if(checkSecondCharacter(character)) {
@@ -320,7 +318,6 @@ void activateAccount(FILE* stream) {
 							printf("Nalog je aktiviran. \n");
 							strcpy(users[i].accState, "Activated");
 							writeUsers(users, numberOfUsers);
-							// TODO: Provjeri sa ulaznicama
 						}
 					}
 			}
@@ -337,45 +334,95 @@ void activateAccount(FILE* stream) {
 void suspendAccount(FILE* stream) {
 
 	int checkShouldIRun = 1; 
-
 	do {
-
 		char character[15] = { '\0' };
 		printf("Suspendovanje klijent naloga [1], Suspendovanje korisnik naloga [2], Kraj [0]: ");
-
 		modifyCharacter(character, 15, stream);
-
 		if(checkFirstCharacter(character)) {
-
 			int numberOfClients = 0;
 			struct Client* clients = getClients(&numberOfClients);
-
 			if(numberOfClients != 0) {
-
 				printClients();
 				char accountName[30] = { '\0' };
 				printf("Unesite ime naloga: ");
 				modifyCharacter(accountName, 30, stream);
-
-				for(int i = 0; i < numberOfClients; i++)
-
-					if(strcmp(clients[i].accName, accountName) == 0) {
-
-						if(strcmp(clients[i].accState, "Suspended") == 0) {
-
+				for(int m = 0; m < numberOfClients; m++) {
+					if(strcmp(clients[m].accName, accountName) == 0) {
+						if(strcmp(clients[m].accState, "Suspended") == 0) {
 							printf("Nalog je vec bio suspendovan. \n");
 						}
 						else {
 							printf("Nalog je suspendovan. \n");
-							strcpy(clients[i].accState, "Suspended");
+							strcpy(clients[m].accState, "Suspended");
 							writeClients(clients, numberOfClients);
-							// TODO: Pogledati sta se desava sa
-							// dogadjajima
+							int numberOfEvents = 0;
+							struct Event* events = getEvents(&numberOfEvents);
+							for(int i = 0; i < numberOfEvents; i++) {
+								if(strcmp(accountName, events[i].accName) == 0) {
+									int* eventTickets = events[i].soldTickets;
+									events[i].soldTickets = NULL;
+									char dumpFile[50] = { '\0' };
+									sprintf(dumpFile, "../Baza_podataka/%d.txt", events[i].eventCode);
+									FILE* file_stream;
+									if((file_stream = fopen(dumpFile, "w")) != NULL) fclose(file_stream);
+									int numberOfUsers = 0;
+									struct User* users = getUsers(&numberOfUsers);
+									for(int j = 0; j < numberOfUsers; j++) {
+										char userFile[50] = { '\0' };
+										strcat(userFile, "../Baza_podataka/");
+										strcat(userFile, users[j].accName);
+										strcat(userFile, ".txt");
+										int counter = 0;
+										int* tempArray = NULL;
+										int numberOfTickets = 0;
+										if((file_stream = fopen(userFile, "r")) != NULL) {
+
+											fscanf(file_stream, "%d\n", &numberOfTickets);
+											tempArray = calloc(numberOfTickets, sizeof(int));
+
+											for(int k = 0; k < numberOfTickets; k++) {
+
+												fscanf(file_stream, "%d\n", &tempArray[k]);
+											}
+											fclose(file_stream);
+										}
+										for(int x = 0; x < events[i].numTickets; x++) {
+											for(int y = 0; y < numberOfTickets; y++) {
+												if(eventTickets[x] == tempArray[y]) {
+
+													tempArray[y] = -1;
+													users[j].accBalance += events[i].ticketPrice;
+													counter++;
+												}
+											}
+										}
+										int* newArray = calloc(numberOfTickets - counter, sizeof(int));
+										for(int x = 0, y = 0; x < numberOfTickets; x++)
+											if(tempArray[x] != -1) newArray[y++] = tempArray[x];
+
+										if((file_stream = fopen(userFile, "w")) != NULL) {
+
+											fprintf(file_stream, "%d\n", numberOfTickets - counter);
+											for(int x = 0; x < numberOfTickets - counter; x++)
+												fprintf(file_stream, "%d\n", newArray[x]);
+											fclose(file_stream);
+										}
+										free(tempArray);
+										free(newArray);
+									}
+									writeUsers(users, numberOfUsers);
+									free(users);
+									events[i].numTickets = 0;
+									writeEvent(events, numberOfEvents);
+									free(eventTickets);
+								}
+							}
+							freeEvent(events, numberOfEvents);
 						}
 					}
+				}
 			}
 			else printf("Nema klijent naloga. \n");
-
 			free(clients);
 		}
 		else if(checkSecondCharacter(character)) {
@@ -390,31 +437,74 @@ void suspendAccount(FILE* stream) {
 				printf("Unesite ime naloga: ");
 				modifyCharacter(accountName, 30, stream);
 
-				for(int i = 0; i < numberOfUsers; i++)
+				for(int m = 0; m < numberOfUsers; m++) {
 
-					if(strcmp(users[i].accName, accountName) == 0) {
+					if(strcmp(users[m].accName, accountName) == 0) {
 
-						if(strcmp(users[i].accState, "Suspended") == 0) {
+						if(strcmp(users[m].accState, "Suspended") == 0) {
 
 							printf("Nalog je vec bio suspendovan. \n");
 						}
 						else {
 
 							printf("Nalog je suspendovan. \n");
-							strcpy(users[i].accState, "Suspended");
-							writeUsers(users, numberOfUsers);
-							// TODO: Sta se desava sa kupljenim
-							// ulaznicam
+							strcpy(users[m].accState, "Suspended");
+
+							FILE* file_stream;
+							char userFile[50] = { '\0' };
+							strcat(userFile, "../Baza_podataka/");
+							strcat(userFile, users[m].accName);
+							strcat(userFile, ".txt");
+
+							int* arrayOfTickets = NULL;
+							int numberOfTickets = 0;
+
+							if((file_stream = fopen(userFile, "r")) != NULL) {
+
+								fscanf(file_stream, "%d\n", &numberOfTickets);
+								arrayOfTickets = calloc(numberOfTickets, sizeof(int));
+								for(int i = 0; i < numberOfTickets; i++)
+									fscanf(file_stream, "%d\n", &arrayOfTickets[i]);
+								fclose(file_stream);
+							}
+
+							if((file_stream = fopen(userFile, "w")) != NULL) {
+
+								fprintf(file_stream, "%d\n", 0);
+								fclose(file_stream);
+							}
+
+							int numberOfEvents = 0;
+							struct Event* events = getEvents(&numberOfEvents);
+							for(int i = 0; i < numberOfEvents; i++) {
+
+								for(int j = 0; j < events[i].numTickets; j++) {
+
+									for(int k = 0; k < numberOfTickets; k++) {
+
+										if(events[i].soldTickets[j] == arrayOfTickets[k]) {
+
+											users[m].accBalance += events[i].ticketPrice;
+											events[i].soldTickets[j] = -1;
+										}
+									}
+								}
+							}
+							free(arrayOfTickets);
+							writeEvent(events, numberOfEvents);
+							freeEvent(events, numberOfEvents);
 						}
 					}
+				}
+				writeUsers(users, numberOfUsers);
 			}
 			else printf("Nema korisnik naloga. \n");
 
 			free(users);
 		}
 		else if(checkExitCharacter(character)) checkShouldIRun = 0;
-		else printf("Greska. Unesite ponovo!\n"); 
-	
+		else printf("Greska. Unesite ponovo!\n");	
+
 	} while(checkShouldIRun);
 }
 
@@ -433,7 +523,7 @@ void deleteAccount(FILE* stream) {
 
 			int numberOfClients = 0;
 			struct Client* clients = getClients(&numberOfClients);
-			
+
 			if(numberOfClients != 0) {
 
 				printClients();
@@ -441,28 +531,94 @@ void deleteAccount(FILE* stream) {
 				printf("Unesite ime naloga: ");
 				modifyCharacter(accountName, 30, stream);
 
-				for(int i = 0; i < numberOfClients; i++)
-					
-					if(strcmp(clients[i].accName, accountName) == 0) {
+				for(int m = 0; m < numberOfClients; m++) {
 
-						if(strcmp(clients[i].accCondition, "Deleted") == 0) {
+					if(strcmp(clients[m].accName, accountName) == 0) {
+
+						if(strcmp(clients[m].accCondition, "Deleted") == 0) {
 
 							printf("Nalog je vec bio obrisan. \n");
 						}
 						else {
 
 							printf("Nalog obrisan. \n");
-							strcpy(clients[i].accCondition, "Deleted");
+							strcpy(clients[m].accCondition, "Deleted");
 							writeClients(clients, numberOfClients);
-							// TODO: Kako sa dogadjajima
+
+							int numberOfEvents = 0;
+							struct Event* events = getEvents(&numberOfEvents);
+							for(int i = 0; i < numberOfEvents; i++) {
+
+								if(strcmp(accountName, events[i].accName) == 0) {
+
+									int* eventTickets = events[i].soldTickets;
+									events[i].soldTickets = NULL;
+
+									char dumpFile[50] = { '\0' };
+									sprintf(dumpFile, "../Baza_podataka/%d.txt", events[i].eventCode);
+									FILE* file_stream;
+									if((file_stream = fopen(dumpFile, "w")) != NULL)
+										fclose(file_stream);
+
+									int numberOfUsers = 0;
+									struct User* users = getUsers(&numberOfUsers);
+									for(int j = 0; j < numberOfUsers; j++) {
+										char userFile[50] = { '\0' };
+										strcat(userFile, "../Baza_podataka/");
+										strcat(userFile, users[j].accName);
+										strcat(userFile, ".txt");
+										int counter = 0;
+										int* tempArray = NULL;
+										int numberOfTickets = 0;
+										if((file_stream = fopen(userFile, "r")) != NULL) {
+
+											fscanf(file_stream, "%d\n", &numberOfTickets);
+											tempArray = calloc(numberOfTickets, sizeof(int));
+
+											for(int k = 0; k < numberOfTickets; k++) {
+
+												fscanf(file_stream, "%d\n", &tempArray[k]);
+											}
+											fclose(file_stream);
+										}
+										for(int x = 0; x < events[i].numTickets; x++) {
+											for(int y = 0; y < numberOfTickets; y++) {
+												if(eventTickets[x] == tempArray[y]) {
+
+													tempArray[y] = -1;
+													users[j].accBalance += events[i].ticketPrice;
+													counter++;
+												}
+											}
+										}
+										int* newArray = calloc(numberOfTickets - counter, sizeof(int));
+										for(int x = 0, y = 0; x < numberOfTickets; x++)
+											if(tempArray[x] != -1) newArray[y++] = tempArray[x];
+
+										if((file_stream = fopen(userFile, "w")) != NULL) {
+
+											fprintf(file_stream, "%d\n", numberOfTickets - counter);
+											for(int x = 0; x < numberOfTickets - counter; x++)
+												fprintf(file_stream, "%d\n", newArray[x]);
+											fclose(file_stream);
+										}
+										free(tempArray);
+										free(newArray);
+									}
+									writeUsers(users, numberOfUsers);
+									free(users);
+									events[i].numTickets = 0;
+									writeEvent(events, numberOfEvents);
+									free(eventTickets);
+								}
+							}
+							freeEvent(events, numberOfEvents);
 						}
 					}
-
+				}
 			} 
 			else printf("Nema klijent naloga. \n");
-
 			free(clients);
-
 		} 
 		else if(checkSecondCharacter(character)) {
 
@@ -476,25 +632,68 @@ void deleteAccount(FILE* stream) {
 				printf("Unesite ime naloga: ");
 				modifyCharacter(accountName, 30, stream);
 
-				for(int i = 0; i < numberOfUsers; i++)
+				for(int m = 0; m < numberOfUsers; m++) {
 
-					if(strcmp(users[i].accName, accountName) == 0) {
+					if(strcmp(users[m].accName, accountName) == 0) {
 
-						if(strcmp(users[i].accCondition, "Deleted") == 0) {
+						if(strcmp(users[m].accCondition, "Deleted") == 0) {
 
 							printf("Nalog je vec bio obrisan. \n");
 						}
 						else {
 
 							printf("Nalog obrisan: \n");
-							strcpy(users[i].accCondition, "Deleted");
-							writeUsers(users, numberOfUsers);
-							// TODO: Kako sa ulaznicama
+							strcpy(users[m].accCondition, "Deleted");
+							
+							FILE* file_stream;
+							char userFile[50] = { '\0' };
+							strcat(userFile, "../Baza_podataka/");
+							strcat(userFile, users[m].accName);
+							strcat(userFile, ".txt");
+
+							int* arrayOfTickets = NULL;
+							int numberOfTickets = 0;
+
+							if((file_stream = fopen(userFile, "r")) != NULL) {
+
+								fscanf(file_stream, "%d\n", &numberOfTickets);
+								arrayOfTickets = calloc(numberOfTickets, sizeof(int));
+								for(int i = 0; i < numberOfTickets; i++)
+									fscanf(file_stream, "%d\n", &arrayOfTickets[i]);
+								fclose(file_stream);
+							}
+
+							if((file_stream = fopen(userFile, "w")) != NULL) {
+
+								fprintf(file_stream, "%d\n", 0);
+								fclose(file_stream);
+							}
+
+							int numberOfEvents = 0;
+							struct Event* events = getEvents(&numberOfEvents);
+							for(int i = 0; i < numberOfEvents; i++) {
+
+								for(int j = 0; j < events[i].numTickets; j++) {
+
+									for(int k = 0; k < numberOfTickets; k++) {
+
+										if(events[i].soldTickets[j] == arrayOfTickets[k]) {
+
+											users[m].accBalance += events[i].ticketPrice;
+											events[i].soldTickets[j] = -1;
+										}
+									}
+								}
+							}
+							free(arrayOfTickets);
+							writeEvent(events, numberOfEvents);
+							freeEvent(events, numberOfEvents);
 						}
 					}
-
-			} else printf("Nema korisnik naloga. \n");
-
+				}
+				writeUsers(users, numberOfUsers);
+			} 
+			else printf("Nema korisnik naloga. \n");
 			free(users);
 
 		} 
@@ -520,7 +719,7 @@ void cancelPass(FILE* stream) {
 
 			int numberOfClients = 0;
 			struct Client* clients = getClients(&numberOfClients);
-			
+
 			if(numberOfClients != 0) {
 
 				printClients();
@@ -529,7 +728,7 @@ void cancelPass(FILE* stream) {
 				modifyCharacter(accountName, 30, stream);
 
 				for(int i = 0; i < numberOfClients; i++)
-					
+
 					if(strcmp(clients[i].accName, accountName) == 0) {
 
 						char accountPass[30] = { '\0' };
@@ -537,7 +736,7 @@ void cancelPass(FILE* stream) {
 						do {
 
 							modifyCharacter(accountPass, 30, stream);
-						
+
 						} while(checkCredentials(accountPass) == 0);
 
 						printf("Sifra je promenjena. \n");
@@ -589,4 +788,103 @@ void cancelPass(FILE* stream) {
 		else printf("Greska. Unesite ponovno!\n");
 
 	} while(checkShouldIRun);
+}
+
+void blockEvent(FILE* stream) {
+
+	int numberOfEvents = 0;
+	struct Event* events = getEvents(&numberOfEvents);
+
+	if(numberOfEvents != 0) {
+
+		printEvents();
+		char eventName[30] = { '\0' };
+		printf("Unesite ime dogadjaja: ");
+		modifyCharacter(eventName, 30, stream);
+
+		for(int m = 0; m < numberOfEvents; m++) {
+
+			if(strcmp(events[m].eventName, eventName) == 0) {
+
+				if(strcmp(events[m].isBlocked, "Yes") == 0) {
+
+					printf("Dogadjaj je vec bio blokiran.\n");
+				}
+				else {
+
+					printf("Dogadjaj je blokiran. \n");
+					strcpy(events[m].isBlocked, "Yes");
+					
+					int numberOfUsers = 0;
+					struct User* users = getUsers(&numberOfUsers);
+					for(int i = 0; i < numberOfUsers; i++) {
+
+						char userFile[50] = { '\0' };
+						strcat(userFile, "../Baza_podataka/");
+						strcat(userFile, users[i].accName);
+						strcat(userFile, ".txt");
+
+						FILE* file_stream;
+						int* arrayOfTickets = NULL;
+						int numberOfTickets = 0;
+
+						if((file_stream = fopen(userFile, "r")) != NULL) {
+
+							fscanf(file_stream, "%d\n", &numberOfTickets);
+							arrayOfTickets = calloc(numberOfTickets, sizeof(int));
+
+							for(int j = 0; j < numberOfTickets; j++) {
+
+								fscanf(file_stream, "%d\n", &arrayOfTickets[j]);
+							}
+							fclose(file_stream);
+						}
+						int counter = 0;
+						for(int x = 0; x < events[m].numTickets; x++) {
+
+							for(int y = 0; y < numberOfTickets; y++) {
+
+								if(events[m].soldTickets[x] == arrayOfTickets[y]) {
+
+									arrayOfTickets[y] = -1;
+									users[i].accBalance += events[m].ticketPrice;
+									counter++;
+								}
+							}
+						}
+						int* newArray = calloc(numberOfTickets - counter, sizeof(int));
+						for(int x = 0, y = 0; x < numberOfTickets; x++)
+							if(arrayOfTickets[x] != -1) newArray[y++] = arrayOfTickets[x];
+
+						if((file_stream = fopen(userFile, "w")) != NULL) {
+
+							fprintf(file_stream, "%d\n", numberOfTickets - counter);
+							for(int x = 0; x < numberOfTickets - counter; x++)
+								fprintf(file_stream, "%d\n", newArray[x]);
+							fclose(file_stream);
+						}
+						free(arrayOfTickets);
+						free(newArray);
+					}
+					writeUsers(users, numberOfUsers);
+					free(users);
+					events[m].numTickets = 0;
+					writeEvent(events, numberOfEvents);
+				}
+			}
+		}
+	}
+	freeEvent(events, numberOfEvents);
+}
+
+void printEvents() {
+
+	int numberOfEvents = 0;
+	struct Event* events = getEvents(&numberOfEvents);
+
+	for(int i = 0; i < numberOfEvents; i++) {
+
+		printf("%s\n", events[i].eventName);
+	}
+	freeEvent(events, numberOfEvents);
 }

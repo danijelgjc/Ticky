@@ -20,13 +20,15 @@ void userOption(struct Info info, FILE* stream) {
 				for(int i = 0; i < numOfEvents; i++)
 					printf("%s %s %s %s %lf\n", events[i].eventName, events[i].eventPlace, events[i].date, events[i].time, events[i].ticketPrice);
 
+				freeEvent(events, numOfEvents);
+
 			}
 			else if(checkSecondCharacter(character)) {
 
 				int checkShouldIRun1 = 1;
 				do
 				{
-					printf("Kupovina ulaznica [1], Pregled kupljenih ulaznica [2], Ponistavanje kupljene ulaznice[3], Kraj[0]: ");
+					printf("Kupovina ulaznica [1], Pregled kupljenih ulaznica [2], Ponistavanje kupljene ulaznice [3], Kraj [0]: ");
 
 					char character1[15] = { '\0' };
 					modifyCharacter(character1, 15, stream);
@@ -37,25 +39,18 @@ void userOption(struct Info info, FILE* stream) {
 					}
 					else if(checkSecondCharacter(character1)) {
 
-						//printTickets(user.accName,stream);
+						processTickets(loggedUser, stream, 0);
 					}
-					/*else if (checkThirdCharacter(character1)) {
+					else if (checkThirdCharacter(character1)) {
 
-						char eventCode[7] = { '\0' };
-						printf("Unesite sifru dogadjaja: ");
-						modifyCharacter(eventCode, 7, stream);
-						returnTicket(eventCode);
-					}*/
+						processTickets(loggedUser, stream, 1);
+					}
 					else if (checkExitCharacter(character1)) checkShouldIRun1 = 0;
 					else printf("Greska. Unesite ponovo!\n");
 
 				} while(checkShouldIRun1);
 			}
-			else if (checkThirdCharacter(character))
-			{
-				// checkCredit(stream);
-			}
-			else if (checkExitCharacter(character)) checkShouldIRun = 1;
+			else if (checkExitCharacter(character)) checkShouldIRun = 0;
 			else printf("Greska. Unesite ponovo!\n");
 		} while (checkShouldIRun);
 	}
@@ -96,6 +91,20 @@ int userLogIn(struct Info info, FILE* stream, char* loggedUser) {
 
 	} while(shouldIRun);
 
+	int numberOfUsers = 0;
+	struct User* users = getUsers(&numberOfUsers);
+
+	for(int i = 0; i < numberOfUsers; i++) {
+
+		if(strcmp(users[i].accName, loggedUser) == 0)
+			if(strcmp(users[i].accState, "Suspended") == 0 || strcmp(users[i].accCondition, "Deleted") == 0) {
+
+				printf("Nedozvoljen pristup.\n");
+				free(users);
+				return 0;
+			}
+	}
+	free(users);
 	strcpy(loggedUser, user.accName);
 	return 1;
 }
@@ -119,66 +128,43 @@ int checkUserLogInInfo(struct User user, int* userNumber) {
 	return 0;
 }
 
-/*
-   void createUser(FILE* stream)
-   {
-
-   struct User user;
-   int numberOfUsers = 0;
-   struct User* users = getUser(&numberOfUsers);
-
-   do {
-
-   printf("Unesite ime korisnickog naloga: "); 
-   modifyCharacter(user.accName, 30, stream);
-
-   printf("Unesite sifru klijent naloga: ");
-   modifyCharacter(user.accPass, 30, stream);
-   } while (checkCredentials(user.accPass) == 0 || checkCredentials(user.accName) == 0 || compareAccountName(user.accName) == 0);
-
-   users = realloc(users, (numberOfUsers + 1) * sizeof(struct Client));
-   user.numOfLogIns = 0;
-
-   strcpy(users[numberOfUsers].accName, user.accName);
-   strcpy(users[numberOfUsers].accPass, user.accPass);
-   users[numberOfUsers].numOfLogIns = user.numOfLogIns;
-   strcpy(users[numberOfUsers].accState, "Activated");
-   strcpy(users[numberOfUsers].accCondition, "Active");
-   users[numberOfUsers].accBalance = 50;
-
-   writeUsers(users, ++numberOfUsers);
-   free(users);
-   }
-
-   void printTickets(char* accName,FILE* stream)
-   {
-   int numOfSolfTickets = 0;
-   struct soldTickets* sTickets = getBoughtTickets(accName,&numOfSolfTickets);
-   for (int i = 0; i < numOfSolfTickets; i++)
-   printf("%s	%d  %lf", sTickets[i].ticket.eventCode, sTickets[i].howMany, sTickets[i].ticket.prise);
-   }
-   void checkCredit(struct User* user)
-   {
-   printf("Iznos na vasem racunu je %lf.\n", user->accBalance);
-   }
-   */
-
 void buyTicket(char* loggedUser, FILE* stream) {
 
 	int numOfEvents = 0;
 	struct Event* events = getEvents(&numOfEvents);
 	if(numOfEvents != 0) {
-		
+
 		for(int i = 0; i < numOfEvents; i++) 
 			printf("[%d] %s %s %s %s %lf\n", i + 1, events[i].eventName, events[i].eventPlace, events[i].date, events[i].time, events[i].ticketPrice);
-		
-		printf("Unesite redni broj dogadjaja: ");
-		char character[15] = { '\0' };
-		modifyCharacter(character, 15, stream);
 
 		int index;
-		sscanf(character, "%d", &index);
+		do {
+
+			printf("Unesite redni broj dogadjaja: ");
+			char character[15] = { '\0' };
+			modifyCharacter(character, 15, stream);
+
+			sscanf(character, "%d", &index);
+		} while(index > numOfEvents || index < 0);
 		index--;
+
+		if(strcmp(events[index].isBlocked, "Yes") == 0) {
+
+			printf("Trenutno se ne mogu kupiti ulaznice za dogadjaj.\n");
+			freeEvent(events, numOfEvents);
+			return;
+		}
+
+		char character[15] = { '\0' };
+		int shouldIRun = 1;
+		do {
+
+			printf("Preuzimanje elektronski [1], Preuzimanje na lokaciji [2]: ");
+			modifyCharacter(character, 15, stream);
+			if(checkFirstCharacter(character)) shouldIRun = 0;
+			else if(checkSecondCharacter(character)) shouldIRun = 0;
+			else printf("Greska! Unesite ponovo. \n");
+		} while(shouldIRun);
 
 		int numberOfUsers = 0;
 		struct User* users = getUsers(&numberOfUsers);
@@ -194,29 +180,33 @@ void buyTicket(char* loggedUser, FILE* stream) {
 				tempBalance = users[i].accBalance;
 			}
 
-		if(events[index].ticketPrice > tempBalance)
-			printf("Nedovoljno kredita na racunu. ");
+		if(events[index].ticketPrice > tempBalance) {
+
+			printf("Nedovoljno kredita na racunu. \n");
+		}
 		else {
 
 			users[userIndex].accBalance -= events[index].ticketPrice;
 			int ticketCode = generateTicketCode();
 
 			writeUsers(users, numberOfUsers);
-			free(users);
 
 			events[index].soldTickets = realloc(events[index].soldTickets, (events[index].numTickets + 1) * sizeof(int));
 
-			events[index].soldTickets[events[index].eventCode] = ticketCode;
+			events[index].soldTickets[events[index].numTickets] = ticketCode;
 			events[index].numTickets++;
 			writeEvent(events, numOfEvents);
 
+			char dump[50] = { '\0' };
+			sprintf(dump, "%d", events[index].eventCode);
+
 			char newFile[50] = { '\0' };
 			strcat(newFile, "../Baza_podataka/");
-			strcat(newFile, loggedUser);
+			strcat(newFile, dump);
 			strcat(newFile, ".txt");
 
 			FILE* stream;
-			
+
 			if((stream = fopen(newFile, "w")) != NULL) {
 
 				for(int i = 0; i < events[index].numTickets; i++)
@@ -224,16 +214,60 @@ void buyTicket(char* loggedUser, FILE* stream) {
 				fclose(stream);
 			}
 
-			free(events);
+			char userFile[50] = { '\0' };
+			strcat(userFile, "../Baza_podataka/");
+			strcat(userFile, loggedUser);
+			strcat(userFile, ".txt");
 
+			int numberOfTickets = 0;
+			int* array = NULL;
+
+			if((stream = fopen(userFile, "r")) != NULL) {
+
+				fscanf(stream, "%d\n", &numberOfTickets);
+				int dump = 0;
+				array = calloc(numberOfTickets, sizeof(int));
+				
+				for(int i = 0; i < numberOfTickets; i++) {
+
+					fscanf(stream, "%d\n", &dump);
+					array[i] = dump;
+				}
+
+				fclose(stream);
+			}
+			else {
+
+				if((stream = fopen(userFile, "w")) != NULL) {
+
+					fprintf(stream, "%d\n", numberOfTickets);
+					fclose(stream);
+				}
+			}
+
+			array = realloc(array, (numberOfTickets + 1) * sizeof(int));
+			array[numberOfTickets++] = ticketCode;
+
+			if((stream = fopen(userFile, "w")) != NULL) {
+
+				fprintf(stream, "%d\n", numberOfTickets);
+				for(int i = 0; i < numberOfTickets; i++)
+					fprintf(stream, "%d\n", array[i]);
+				fclose(stream);
+			}
+
+			free(array);
 		}
+
+		free(users);
 	}
+	freeEvent(events, numOfEvents);
 }
 
 int generateTicketCode() {
 
 	int newTicketCode = 0;
-	
+
 	int numberOfEvents = 0;
 	struct Event* events = getEvents(&numberOfEvents);
 
@@ -246,22 +280,173 @@ int generateTicketCode() {
 		int newID = 1000 + rand() % 9000;
 
 		for(int i = 0; i < numberOfEvents; i++) {
-		
+
 			for(int j = 0; j < events[i].numTickets; j++) {
 
 				if(newID == events[i].soldTickets[j]) {
-					
+
 					shouldIRun = 1;
 					break;
 				}
 			}
 		}
-		
+
 		if(shouldIRun == 0) newTicketCode = newID;
 
 	} while(shouldIRun);
 
-	free(events);
+	freeEvent(events, numberOfEvents);
 
 	return newTicketCode;
 }
+
+void processTickets(char* loggedUser, FILE* inputStream, int globalChecker){
+
+	char userFile[50] = { '\0' };
+	strcat(userFile, "../Baza_podataka/");
+	strcat(userFile, loggedUser);
+	strcat(userFile, ".txt");
+	FILE* stream;
+
+	int numberOfTickets = 0;
+	int* arrayOfTickets = NULL;
+
+	if((stream = fopen(userFile, "r")) != NULL) {
+
+		fscanf(stream, "%d\n", &numberOfTickets);
+		arrayOfTickets = calloc(numberOfTickets, sizeof(int));
+
+		for(int i = 0; i < numberOfTickets; i++) {
+			
+			int dump = 0;
+			fscanf(stream, "%d\n", &dump);
+			arrayOfTickets[i] = dump;
+		}
+
+		fclose(stream);
+	}
+	else return;
+
+	char** nameOfTickets = calloc(numberOfTickets, sizeof(char*));
+
+	int numberOfEvents = 0;
+	struct Event* events = getEvents(&numberOfEvents);
+
+	for(int i = 0; i < numberOfEvents; i++) {
+
+		char eventFile[50] = { '\0' };
+		sprintf(eventFile, "../Baza_podataka/%d.txt", events[i].eventCode);
+
+		int* arrayOfEventCode = calloc(events[i].numTickets, sizeof(int));
+
+		if((stream = fopen(eventFile, "r")) != NULL) {
+
+			for(int j = 0; j < events[i].numTickets; j++) {
+
+				int dump = 0;
+				fscanf(stream, "%d\n", &dump);
+				arrayOfEventCode[j] = dump;
+			}
+			fclose(stream);
+		}
+
+		for(int j = 0; j < numberOfTickets; j++) {
+
+			for(int k = 0; k < events[i].numTickets; k++) {
+
+				if(arrayOfTickets[j] == arrayOfEventCode[k]) {
+
+					nameOfTickets[j] = calloc(strlen(events[i].eventName) + 1, 1);
+					strcat(nameOfTickets[j], events[i].eventName);
+				}
+			}
+		}
+		free(arrayOfEventCode);
+	}
+	if(globalChecker == 0) {
+
+		free(arrayOfTickets);
+		for(int i = 0; i < numberOfTickets; i++) {
+
+			printf("%s\n", nameOfTickets[i]);
+			free(nameOfTickets[i]);
+		}
+		free(nameOfTickets);
+		freeEvent(events, numberOfEvents);
+	}
+	else {
+
+		int indexName = 0;
+		
+		if(numberOfTickets == 0) {
+		 
+			free(arrayOfTickets);
+			free(nameOfTickets);
+			freeEvent(events, numberOfEvents);
+			return;
+		}
+
+		for(int i = 0; i < numberOfTickets; i++)
+			printf("[%d] %s\n", i + 1, nameOfTickets[i]);
+
+		do {
+
+			printf("Unesite redni broj dogadjaja: ");
+			char character[15] = { '\0' };
+			modifyCharacter(character, 15, inputStream);
+
+			sscanf(character, "%d", &indexName);
+
+		} while(indexName > numberOfTickets || indexName < 0);
+
+		indexName--;
+
+		int temp = arrayOfTickets[indexName];
+
+		for(int i = indexName; i < numberOfTickets - 1; i++)
+			arrayOfTickets[i] = arrayOfTickets[i + 1];
+
+		numberOfTickets--;
+
+		if((stream = fopen(userFile, "w")) != NULL) {
+
+			fprintf(stream, "%d\n", numberOfTickets);
+			for(int i = 0; i < numberOfTickets; i++) {
+				
+				fprintf(stream, "%d\n", arrayOfTickets[i]);
+			}
+			fclose(stream);
+		}
+
+		int refundPrice = 0;
+
+		for(int i = 0; i < numberOfEvents; i++) {
+			
+			for(int j = 0; j < events[i].numTickets; j++)
+				if(events[i].soldTickets[j] == temp) {
+				
+					refundPrice = events[i].ticketPrice;
+					events[i].soldTickets[j] = -1;
+				}
+		}
+
+		int numberOfUsers = 0;
+		struct User* users = getUsers(&numberOfUsers);
+
+		for(int i = 0; i < numberOfUsers; i++)
+			if(strcmp(loggedUser, users[i].accName) == 0)
+				users[i].accBalance += refundPrice;
+
+		writeUsers(users, numberOfUsers);
+		free(users);
+
+		writeEvent(events, numberOfEvents);
+
+		free(arrayOfTickets);
+
+		for(int i = 0; i < numberOfTickets + 1; i++)
+			free(nameOfTickets[i]);
+		free(nameOfTickets);
+		freeEvent(events, numberOfEvents);
+	}
+}  

@@ -43,6 +43,7 @@ struct User {
 
 struct Event
 {
+	char isBlocked[30];
 	int eventCode;
 	char eventName[30];
 
@@ -143,5 +144,7 @@ void printUsers();
 void writeUsers(struct User*, int);
 
 void writeClients(struct Client*, int);
+
+void freeEvent(struct Event*, int);
 
 #endif

@@ -3,22 +3,18 @@
 
 #include "TickyGlobal.h"
 
-void clientOption(struct Info*, FILE*); // TODO: Mozda treba jos par opcija
+void clientOption(struct Info*, FILE*);
 
-int checkClientLogInInfo(struct Client, int*);		// DONE
+int checkClientLogInInfo(struct Client, int*);
 
-void createEvent(FILE*); // TODO: Provjera da li ima duplih Eventa
+void createEvent(FILE*, char*);
 
-void writeEvent(struct Event*, int);//DONE
-
-void checkSoldTickets(FILE*);	// TODO
-
-void checkSales(FILE*);//TODO
-
-void deleteEvent(FILE*, char*);//DONE
+void writeEvent(struct Event*, int);
 
 int generateEventCode();
 
-int clientLogIn(struct Info*, FILE*, char*); 			// DONE
+void printSoldTickets();
+
+int clientLogIn(struct Info*, FILE*, char*);
 
 #endif
