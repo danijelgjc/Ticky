@@ -182,9 +182,11 @@ struct Event* getEvents(int* numberOfEvents) {
 		strcat(newFile, dump);
 		strcat(newFile, ".txt");
 
+		int oldTemp = 0;
 
 		if((stream = fopen(newFile, "r")) != NULL) {
 
+			fscanf(stream, "%d\n", &oldTemp);
 			int* temp = NULL;
 			temp = calloc(events[i].numTickets, sizeof(int));
 			for(int j = 0; j < events[i].numTickets; j++) {
@@ -300,6 +302,7 @@ void printClients() {
 	int numberOfClients = 0;
 	struct Client* clients = getClients(&numberOfClients);
 
+	if(numberOfClients != 0) printf("\n");
 	for(int i = 0; i < numberOfClients; i++)
 		printf("%s\n", clients[i].accName);
 
@@ -311,6 +314,7 @@ void printUsers() {
 	int numberOfUsers = 0;
 	struct User* users = getUsers(&numberOfUsers);
 
+	if(numberOfUsers != 0) printf("\n");
 	for(int i = 0; i < numberOfUsers; i++)
 		printf("%s\n", users[i].accName);
 
@@ -375,4 +379,112 @@ void freeEvent(struct Event* events, int numberOfEvents) {
 			free(events);
 		}
 	}
-}	
+}
+
+int checkIfDateValid(char* date) {
+	
+	int dd, mm, yyyy;
+	if(sscanf(date, "%d.%d.%d", &dd, &mm, &yyyy) != 3) { 
+		return 0;
+	}
+	if(dd < 1 || dd > 31 || mm < 1 || mm > 12 || yyyy <= 2022) {
+		return 0;
+	}
+	if (mm == 2) {
+		if (dd > 29) return 0;
+		if (dd == 29 && (yyyy % 4 != 0 || (yyyy % 100 == 0 && yyyy % 400 != 0))) return 0;
+	}
+	else if (mm == 4 || mm == 6 || mm == 9 || mm == 11) {
+		if (dd > 30) return 0;
+	}
+	return 1;
+}
+
+int checkIfTimeValid(char* time) {
+
+	int hh, mm;
+	if(sscanf(time, "%d:%d", &hh, &mm) != 2) {
+		return 0;
+	}
+	if(hh < 0 || hh > 23 || mm < 0 || mm > 59) {
+		return 0;
+	}
+	return 1;
+}
+
+struct Date convertToDate(char* date) {
+
+	int dd, mm, yyyy;
+	sscanf(date, "%d.%d.%d", &dd, &mm, &yyyy);
+	struct Date temp;
+	temp.dd = dd;
+	temp.mm = mm;
+	temp.yyyy = yyyy;
+	return temp;
+}
+
+void allTickets(struct Date start, struct Date end, struct Data* array) {
+
+	int numberOfEvents = 0;
+	struct Event* events = getEvents(&numberOfEvents);
+
+
+	for(int i = 0; i < numberOfEvents; i++) {
+
+		struct Date current = convertToDate(events[i].date);
+		if(current.yyyy > start.yyyy && current.yyyy < end.yyyy) {
+
+			array->numberOfData++;
+		}	
+		else if (current.yyyy == start.yyyy && current.yyyy == end.yyyy) {
+
+			if (current.mm > start.mm && current.mm < end.mm) {
+
+				array->numberOfData++;
+			}
+			else if (current.mm == start.mm && current.mm == end.mm) {
+
+				if (current.dd >= start.dd && current.dd <= end.dd) {
+
+					array->numberOfData++;
+				}
+			}
+		}
+
+	}
+
+	array->soldTickets = calloc(array->numberOfData, sizeof(int));
+	array->eventName = calloc(array->numberOfData, sizeof(char*));
+
+	int j = 0;
+
+	for(int i = 0; i < numberOfEvents; i++) {
+
+		struct Date current = convertToDate(events[i].date);
+		if(current.yyyy > start.yyyy && current.yyyy < end.yyyy) {
+
+			array->soldTickets[j] = events[i].numTickets;
+			array->eventName[j] = calloc(strlen(events[i].eventName) + 1, 1);
+			strcpy(array->eventName[j++], events[i].eventName);
+		}	
+		else if (current.yyyy == start.yyyy && current.yyyy == end.yyyy) {
+
+			if (current.mm > start.mm && current.mm < end.mm) {
+				array->soldTickets[j] = events[i].numTickets;
+				array->eventName[j] = calloc(strlen(events[i].eventName) + 1, 1);
+				strcpy(array->eventName[j++], events[i].eventName);
+			}
+		}
+		else if (current.mm == start.mm && current.mm == end.mm) {
+
+			if (current.dd >= start.dd && current.dd <= end.dd) {
+				array->soldTickets[j] = events[i].numTickets;
+				array->eventName[j] = calloc(strlen(events[i].eventName) + 1, 1);
+				strcpy(array->eventName[j++], events[i].eventName);
+			}
+		}
+	}
+}
+
+	
+

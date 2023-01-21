@@ -13,7 +13,9 @@ void writeEvent(struct Event*, int);
 
 int generateEventCode();
 
-void printSoldTickets();
+void printSoldTickets(char*);
+
+void printByPeriod(char*, FILE*);
 
 int clientLogIn(struct Info*, FILE*, char*);
 

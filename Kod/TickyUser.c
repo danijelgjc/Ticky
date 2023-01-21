@@ -17,6 +17,8 @@ void userOption(struct Info info, FILE* stream) {
 
 				int numOfEvents = 0;
 				struct Event* events = getEvents(&numOfEvents);
+				
+				if(numOfEvents != 0) printf("\n");
 				for(int i = 0; i < numOfEvents; i++)
 					printf("%s %s %s %s %lf\n", events[i].eventName, events[i].eventPlace, events[i].date, events[i].time, events[i].ticketPrice);
 
@@ -88,6 +90,11 @@ int userLogIn(struct Info info, FILE* stream, char* loggedUser) {
 			shouldIRun = 0;
 			free(users);
 		}
+		else {
+
+			printf("Nema takvog korisnika.\n");
+			return 0;
+		}
 
 	} while(shouldIRun);
 
@@ -118,11 +125,20 @@ int checkUserLogInInfo(struct User user, int* userNumber) {
 
 		if(strcmp(users[i].accName, user.accName) == 0 && strcmp(users[i].accPass, user.accPass) == 0) {
 
-			*userNumber = i;
-			free(users);
-			return 1;
+			if(strcmp(users[i].accState, "Suspended") != 0 && strcmp(users[i].accCondition, "Deleted") != 0) {
+			
+				*userNumber = i;
+				free(users);
+				return 1;
+			}
+			else {
+
+				free(users);
+				return 0;
+			}
 		}
 	}
+
 	free(users);
 	printf("Pogresni uneseni podaci!\n");
 	return 0;
@@ -134,6 +150,7 @@ void buyTicket(char* loggedUser, FILE* stream) {
 	struct Event* events = getEvents(&numOfEvents);
 	if(numOfEvents != 0) {
 
+		printf("\n");
 		for(int i = 0; i < numOfEvents; i++) 
 			printf("[%d] %s %s %s %s %lf\n", i + 1, events[i].eventName, events[i].eventPlace, events[i].date, events[i].time, events[i].ticketPrice);
 
@@ -209,6 +226,7 @@ void buyTicket(char* loggedUser, FILE* stream) {
 
 			if((stream = fopen(newFile, "w")) != NULL) {
 
+				fprintf(stream, "%d\n", events[index].numTickets);
 				for(int i = 0; i < events[index].numTickets; i++)
 					fprintf(stream, "%d\n", events[index].soldTickets[i]);
 				fclose(stream);
@@ -227,7 +245,7 @@ void buyTicket(char* loggedUser, FILE* stream) {
 				fscanf(stream, "%d\n", &numberOfTickets);
 				int dump = 0;
 				array = calloc(numberOfTickets, sizeof(int));
-				
+
 				for(int i = 0; i < numberOfTickets; i++) {
 
 					fscanf(stream, "%d\n", &dump);
@@ -317,7 +335,7 @@ void processTickets(char* loggedUser, FILE* inputStream, int globalChecker){
 		arrayOfTickets = calloc(numberOfTickets, sizeof(int));
 
 		for(int i = 0; i < numberOfTickets; i++) {
-			
+
 			int dump = 0;
 			fscanf(stream, "%d\n", &dump);
 			arrayOfTickets[i] = dump;
@@ -339,8 +357,11 @@ void processTickets(char* loggedUser, FILE* inputStream, int globalChecker){
 
 		int* arrayOfEventCode = calloc(events[i].numTickets, sizeof(int));
 
+		int oldTemp = 0;
+
 		if((stream = fopen(eventFile, "r")) != NULL) {
 
+			fscanf(stream, "%d\n", &oldTemp);
 			for(int j = 0; j < events[i].numTickets; j++) {
 
 				int dump = 0;
@@ -366,6 +387,7 @@ void processTickets(char* loggedUser, FILE* inputStream, int globalChecker){
 	if(globalChecker == 0) {
 
 		free(arrayOfTickets);
+		if(numberOfTickets != 0) printf("\n");
 		for(int i = 0; i < numberOfTickets; i++) {
 
 			printf("%s\n", nameOfTickets[i]);
@@ -377,15 +399,16 @@ void processTickets(char* loggedUser, FILE* inputStream, int globalChecker){
 	else {
 
 		int indexName = 0;
-		
+
 		if(numberOfTickets == 0) {
-		 
+
 			free(arrayOfTickets);
 			free(nameOfTickets);
 			freeEvent(events, numberOfEvents);
 			return;
 		}
 
+		printf("\n");
 		for(int i = 0; i < numberOfTickets; i++)
 			printf("[%d] %s\n", i + 1, nameOfTickets[i]);
 
@@ -397,7 +420,7 @@ void processTickets(char* loggedUser, FILE* inputStream, int globalChecker){
 
 			sscanf(character, "%d", &indexName);
 
-		} while(indexName > numberOfTickets || indexName < 0);
+		} while(indexName > numberOfTickets || indexName <= 0);
 
 		indexName--;
 
@@ -412,7 +435,7 @@ void processTickets(char* loggedUser, FILE* inputStream, int globalChecker){
 
 			fprintf(stream, "%d\n", numberOfTickets);
 			for(int i = 0; i < numberOfTickets; i++) {
-				
+
 				fprintf(stream, "%d\n", arrayOfTickets[i]);
 			}
 			fclose(stream);
@@ -421,10 +444,10 @@ void processTickets(char* loggedUser, FILE* inputStream, int globalChecker){
 		int refundPrice = 0;
 
 		for(int i = 0; i < numberOfEvents; i++) {
-			
+
 			for(int j = 0; j < events[i].numTickets; j++)
 				if(events[i].soldTickets[j] == temp) {
-				
+
 					refundPrice = events[i].ticketPrice;
 					events[i].soldTickets[j] = -1;
 				}

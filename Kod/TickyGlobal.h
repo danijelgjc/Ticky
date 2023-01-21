@@ -7,6 +7,28 @@
 #include <string.h>
 #include <time.h>
 
+struct Date {
+
+	int dd;
+	int mm;
+	int yyyy;
+};
+
+struct Date convertToDate(char*);
+
+int checkIfDateValid(char*);
+
+int checkIfTimeValid(char*);
+
+struct Data {
+
+	int numberOfData;
+	int* soldTickets;
+	char** eventName;
+};
+
+void allTickets(struct Date, struct Date, struct Data*);
+
 struct Admin {
 
 	char accountName[30];

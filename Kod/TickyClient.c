@@ -5,25 +5,25 @@ void clientOption(struct Info* info, FILE* stream) {
 
 	char loggedClient[30] = { '\0' };
 	if (clientLogIn(info, stream, loggedClient)) {
-		
+
 		int checkShouldIRun = 1;
 		do {
-		
+
 			printf("Obrada dogadjaja [1], Izvjestaji [2], Kraj [0]: ");
 
 			char character[15] = { '\0' };
 			modifyCharacter(character, 15, stream);
 			if (checkFirstCharacter(character)) {
-		
+
 				int checkShouldIRun1 = 1;
 				do {
-				
+
 					char character1[15] = { '\0' };
 					printf("Kreiranje dogadjaja [1], Kraj [0]: ");
 					modifyCharacter(character1, 15, stream);
-				
+
 					if(checkFirstCharacter(character1)) {
-						
+
 						createEvent(stream, loggedClient);
 					}
 					else if(checkExitCharacter(character1)) checkShouldIRun1 = 0;					
@@ -39,12 +39,14 @@ void clientOption(struct Info* info, FILE* stream) {
 					char character1[15] = { '\0' };
 					printf("Izvjestaj prodanih ulaznica [1], Izvjestaj prodanih ulaznica po periodu [2], Kraj[0]: ");
 					modifyCharacter(character1, 15, stream);
-					
+
 					if(checkFirstCharacter(character1)) {
-						
+
 						printSoldTickets(loggedClient);
 					}
 					else if(checkSecondCharacter(character1)) {
+
+						printByPeriod(loggedClient, stream);
 					}
 					else if (checkExitCharacter(character1)) checkShouldIRun1 = 0;
 					else printf("Greska. Unesite ponovo!\n");
@@ -104,6 +106,7 @@ int clientLogIn(struct Info* info, FILE* stream, char* string) {
 			}
 	}
 
+	free(clients);
 	strcpy(string, client.accName);
 
 	return 1;
@@ -133,10 +136,10 @@ void writeEvent(struct Event* events, int numberOfEvents) {
 	int j = numberOfEvents;
 
 	if ((stream = fopen("../Baza_podataka/event.txt", "w")) != NULL) {
-		
+
 		fprintf(stream, "%d\n", j);
 		for(int i = 0; i < j; i++) {
-		
+
 			FILE* stream_1;
 
 			char newFile[50] = { '\0' };
@@ -151,11 +154,26 @@ void writeEvent(struct Event* events, int numberOfEvents) {
 			int checker = 0;
 			int checker1;
 			int counter = 0;	// broji koliko ulaznica je skinuto
+
+			int leftTickets = 0;
+			if((stream_1 = fopen(newFile, "r")) != NULL) {
+
+				int dump = 0;
+				fscanf(stream_1, "%d\n", &dump);
+				if(dump != 0) {
+
+					for(int s = 0; s < events[i].numTickets; s++)
+						if(events[i].soldTickets[s] == -1) leftTickets++;
+				}
+				fclose(stream_1);
+			}
+
 			if((stream_1 = fopen(newFile, "w")) != NULL) {
 
+				fprintf(stream_1, "%d\n", events[i].numTickets - leftTickets);
 				if(events[i].numTickets != 0) {
 					for(int k = 0; k < events[i].numTickets; k++) {
-						
+
 						if(events[i].soldTickets[k] != -1)
 							fprintf(stream_1, "%d\n", events[i].soldTickets[k]);
 						else {
@@ -191,7 +209,7 @@ int generateEventCode() {
 		for(int i = 0; i < numberOfEvents; i++) 
 			if(newID == events[i].eventCode)
 				shouldIRun = 1;
-		
+
 		if(shouldIRun == 0)
 			newEventCode = newID;
 
@@ -210,19 +228,27 @@ void createEvent(FILE* stream, char* loggedClient) {
 	printf("Unesite ime dogadjaja: ");
 	modifyCharacter(eventName, 30, stream);
 
-	printf("Unesite datum odrzavanja: ");
-	printf("\nDan, mjesec i godina: ");
-	char date[30] = { '\0' };
-	modifyCharacter(date, 30, stream);
+	int shouldIRun = 1;
 
+	char date[30] = { '\0' };
+	do {
+		printf("Unesite datum odrzavanja: ");
+		printf("\nDan, mjesec i godina: ");
+		modifyCharacter(date, 30, stream);
+		if(checkIfDateValid(date)) shouldIRun = 0;
+	} while(shouldIRun);
 	printf("Unesite mjesto odrzavanja: ");
 	char eventPlace[30] = { '\0' };
 	modifyCharacter(eventPlace, 30, stream);
 
-	printf("Unesite vrijeme odrzavanja: ");
-	printf("\nSati i minute: ");
 	char time[30] = { '\0' };
-	modifyCharacter(time, 30, stream);
+	shouldIRun = 1;
+	do {
+		printf("Unesite vrijeme odrzavanja: ");
+		printf("\nSati i minute: ");
+		modifyCharacter(time, 30, stream);
+		if(checkIfTimeValid(time)) shouldIRun = 0;
+	} while(shouldIRun);
 
 	printf("Unesite cijenu ulaznica: ");
 	double price;
@@ -265,7 +291,7 @@ void printSoldTickets(char* loggedClient) {
 	struct Event* events = getEvents(&numberOfEvents);
 
 	int counter = 0;
-	
+
 	for(int i = 0; i < numberOfEvents; i++) {
 
 		if(strcmp(events[i].accName, loggedClient) == 0) {
@@ -296,7 +322,7 @@ void printSoldTickets(char* loggedClient) {
 	for(int i = 0; i < counter; i++) {
 
 		if(numTickets[i] != 0) {
-		
+
 			printf("%d x %s\n", numTickets[i], eventNames[i]);
 		}
 	}
@@ -308,4 +334,39 @@ void printSoldTickets(char* loggedClient) {
 		free(eventNames[i]);
 	}
 	free(eventNames);
+}
+
+void printByPeriod(char* loggedClient, FILE* stream) {
+
+	printf("Unesite pocetni datum: ");
+	char dump[30] = { '\0' };
+	modifyCharacter(dump, 30, stream);
+
+	printf("Unesite krajnji datum: ");
+	char dump1[30] = { '\0' };
+	modifyCharacter(dump1, 30, stream);
+
+	struct Date date = convertToDate(dump);
+	struct Date date1= convertToDate(dump1);
+
+	struct Data data;
+	allTickets(date, date1, &data);
+
+	FILE* file_stream;
+	printf("Unesite ime fajla: ");
+	char temp_name[30] = { '\0' };
+	modifyCharacter(temp_name, 30, stream);
+	strcat(temp_name, ".txt");
+
+	if((file_stream = fopen(temp_name, "w")) != NULL) {
+
+		for(int i = 0; i < data.numberOfData; i++) {
+
+			fprintf(file_stream, "%d x %s\n", data.soldTickets[i], data.eventName[i]);
+			free(data.eventName[i]);
+		}
+		free(data.soldTickets);
+		fclose(file_stream);
+	}
+
 }

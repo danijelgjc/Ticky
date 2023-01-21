@@ -364,7 +364,12 @@ void suspendAccount(FILE* stream) {
 									char dumpFile[50] = { '\0' };
 									sprintf(dumpFile, "../Baza_podataka/%d.txt", events[i].eventCode);
 									FILE* file_stream;
-									if((file_stream = fopen(dumpFile, "w")) != NULL) fclose(file_stream);
+
+									if((file_stream = fopen(dumpFile, "w")) != NULL) {
+
+										fprintf(file_stream, "%d\n", 0);
+										fclose(file_stream);
+									}
 									int numberOfUsers = 0;
 									struct User* users = getUsers(&numberOfUsers);
 									for(int j = 0; j < numberOfUsers; j++) {
@@ -557,8 +562,11 @@ void deleteAccount(FILE* stream) {
 									char dumpFile[50] = { '\0' };
 									sprintf(dumpFile, "../Baza_podataka/%d.txt", events[i].eventCode);
 									FILE* file_stream;
-									if((file_stream = fopen(dumpFile, "w")) != NULL)
+									if((file_stream = fopen(dumpFile, "w")) != NULL) {
+
+										fprintf(stream, "%d\n", 0);
 										fclose(file_stream);
+									}
 
 									int numberOfUsers = 0;
 									struct User* users = getUsers(&numberOfUsers);
@@ -882,6 +890,7 @@ void printEvents() {
 	int numberOfEvents = 0;
 	struct Event* events = getEvents(&numberOfEvents);
 
+	if(numberOfEvents != 0) printf("\n");
 	for(int i = 0; i < numberOfEvents; i++) {
 
 		printf("%s\n", events[i].eventName);
